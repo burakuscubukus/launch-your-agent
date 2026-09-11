@@ -1,0 +1,12 @@
+Bugünün günlük fon & yatırım raporunu hazırla.
+
+Kapsam: sistem talimatındaki hesap listesindeki her X hesabının **son 24 saat** içindeki paylaşımları (bu çalışmanın başladığı andan geriye doğru 24 saat). Daha eskisini alma.
+
+Adımlar:
+1. Her hesap için twitterapi.io'dan son paylaşımları çek (sistem talimatındaki çağrı şekli). Bir hesap hata verirse pes etme, diğerlerine devam et ve hatayı not al.
+2. Son 24 saatin dışındaki gönderileri ele.
+3. Kalanları dört başlığa ayır: Mevzuat & vergi · Fon & piyasa · Yorum & analiz · Diğer. Sıralama bu; mevzuat/vergi en üstte.
+4. Her maddeyi tek cümlede özetle, sonuna @hesap adı ve gönderinin X bağlantısını koy.
+5. /mnt/session/outputs/rapor.md ve /mnt/session/outputs/whatsapp.txt dosyalarını yaz.
+
+Kurallar: yatırım tavsiyesi verme, kendi görüşünü ekleme — kimin ne dediğini aktar. Kaynaksız hiçbir madde yazma. Kayda değer bir şey yoksa öyle yaz, doldurma.

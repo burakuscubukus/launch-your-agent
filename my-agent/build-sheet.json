@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "founder": "Burak Çubuk",
+    "company": "Tolga Özel Eğitim ve Rehabilitasyon Merkezi",
+    "problem": "Her gün X hesabıma girip belirttiğim hesapları okuyup bana rapor sunmasını isterim.",
+    "created": "2026-09-11",
+    "skill_version": "0.3.0"
+  },
+  "agent": {
+    "name": "gunluk-fon-raporu",
+    "model": "PICKED-AT-LAUNCH",
+    "model_rationale": "En yeni Opus sınıfı — Türkçe finans/mevzuat içeriğini doğru sınıflandırmak yorum gerektiriyor; günde bir çalışma sentlerle ölçülüyor.",
+    "version": null,
+    "system_summary": "Sistem talimatındaki 21 X hesabının son 24 saatlik paylaşımlarını twitterapi.io üzerinden çeker, dört başlıkta gruplar, WhatsApp'a yapıştırılabilir Türkçe raporu /mnt/session/outputs/ altına yazar.",
+    "never_dos": [
+      "Asla hiçbir yere mesaj göndermez, paylaşım yapmaz — sadece okur ve yazar",
+      "Asla yatırım tavsiyesi vermez; kimin ne dediğini aktarır, kendi görüşünü eklemez",
+      "Asla kaynaksız iddia yazmaz — her madde @hesap + X bağlantısı taşır",
+      "Asla boş günü doldurmaz; kayda değer bir şey yoksa öyle der"
+    ]
+  },
+  "outcome": {
+    "description": "Son 24 saatin günlük fon & yatırım raporunu üret",
+    "rubric_criteria": [
+      "rapor dosyası /mnt/session/outputs/ altında üretilmiş ve accounts.json'daki hesapların tamamı taranmış; veri çekilemeyen hesap varsa raporun sonunda açıkça listelenmiş",
+      "Raporun her maddesinde paylaşımı yapan hesabın @adı ve gönderinin doğrudan X bağlantısı var",
+      "Rapor dört başlığa ayrılmış: 'Fon & piyasa', 'Mevzuat & vergi', 'Yorum & analiz', 'Diğer'; mevzuat/vergi başlığı en üstte",
+      "Sadece son 24 saatteki paylaşımlar var; daha eski gönderi rapora girmemiş",
+      "whatsapp.txt üretilmiş: düz metin, WhatsApp'a olduğu gibi yapıştırılabilir, telefonda okunacak uzunlukta",
+      "Bir başlıkta kayda değer paylaşım yoksa o başlıkta 'bugün kayda değer bir şey yok' yazıyor; içerik şişirilmemiş"
+    ],
+    "max_iterations": 3
+  },
+  "tools": {
+    "toolset": "agent_toolset_20260401",
+    "enabled": [
+      "bash",
+      "read",
+      "write",
+      "edit",
+      "glob",
+      "grep",
+      "web_search",
+      "web_fetch"
+    ],
+    "disabled": [],
+    "permission_overrides": [],
+    "custom_tools": []
+  },
+  "connections": {
+    "mcp_servers": [],
+    "vault_credentials": [
+      {
+        "type": "environment_variable",
+        "secret_name": "TWITTERAPI_IO_KEY",
+        "purpose": "twitterapi.io okuma anahtarı — X'in herkese açık paylaşımlarını çeker"
+      }
+    ],
+    "github": null,
+    "notes": "X'in resmî API'sinde yeni geliştirici için ücretsiz okuma yok (Şubat 2026'da kaldırıldı). twitterapi.io: kart istemeyen 1$ deneme kredisi, sonrası 1000 tweet = 0,15$. Şifre/oturum çerezi paylaşımı yok."
+  },
+  "skills": [],
+  "memory": {
+    "stores": []
+  },
+  "environment": {
+    "name": "gunluk-fon-raporu-env",
+    "type": "cloud",
+    "networking": "unrestricted",
+    "allowed_hosts": [],
+    "packages": {}
+  },
+  "schedule": {
+    "mode": "scheduled",
+    "cron": "30 8 * * *",
+    "timezone": "Europe/Istanbul",
+    "human": "Her gün 08:30, Türkiye saati",
+    "kickoff": "user.define_outcome (first_prompt.txt + outcome.md)"
+  },
+  "evals": {
+    "cases": [
+      {
+        "name": "case-01",
+        "input": "evals/case-01/input.md",
+        "expected": "İlk onayladığınız rapor buraya kaydedilecek",
+        "last_verdict": null
+      }
+    ],
+    "notes": "Geçmiş raporunuz olmadığı için 1. vaka bugünün çalışması; onayladığınız çıktı referans olarak saklanır ve sonraki agent sürümleri bununla karşılaştırılır."
+  },
+  "defaults_applied": {
+    "iteration_bound": "Outcome 3 notla-düzelt turundan sonra durur",
+    "write_actions": "v0'da yok — agent yazar, gönderen sizsiniz"
+  },
+  "interface": {
+    "who": "Burak",
+    "how": "Her sabah rapor dosyası üretilir; whatsapp.txt kopyalanıp yapıştırılır. Çalışma geçmişi Console'da."
+  },
+  "next_directions": [],
+  "ids": {},
+  "accounts": [
+    "@AtaPortfoy",
+    "@HedefPortfoy",
+    "@ProfDemirtas",
+    "@fonfiyat",
+    "@FoneriaApp",
+    "@Erollpolat83",
+    "@laplace2011",
+    "@Yatirim101",
+    "@yatirimfonlarim",
+    "@101_bes",
+    "@iyigelirnet",
+    "@FonTurkey",
+    "@infoyatirim",
+    "@EkonomistDergi",
+    "@TuncSatiroglu",
+    "@pardusportfoy",
+    "@terayatirim",
+    "@pusulaportfoy",
+    "@barissoydan",
+    "@fonvesting007",
+    "@emrahlafcu"
+  ]
+}

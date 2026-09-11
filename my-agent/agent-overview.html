@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gunluk-fon-raporu — agent şeması</title>
+<link rel="stylesheet" href="overview.css">
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="ident">
+      <div class="sigil">🤖</div>
+      <div>
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <h1>gunluk-fon-raporu</h1>
+          <span class="statepill planned"><span class="led planned"></span>PLANLANDI · HENÜZ CANLI DEĞİL</span>
+        </div>
+        <div class="byline">Claude Managed Agent · Burak Çubuk · Tolga Özel Eğitim ve Rehabilitasyon Merkezi · 11.09.2026</div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-k">Model</div><div class="stat-v"><span class="dim">canlıya alırken</span></div></div>
+      <div class="stat"><div class="stat-k">Çalışma</div><div class="stat-v">Her gün 08:30 <span class="dim">TR</span></div></div>
+      <div class="stat"><div class="stat-k">Agent</div><div class="stat-v"><span class="dim">canlıya alırken</span></div></div>
+      <div class="stat"><div class="stat-k">Deployment</div><div class="stat-v"><span class="dim">ilk rapor onaylanınca</span></div></div>
+    </div>
+  </div>
+
+  <p class="problem">"Her gün X hesabıma girip belirtmiş olduğum X hesaplarını okuyup bana rapor sunmasını isterim."</p>
+
+  <p class="lane-label">Sistem şeması</p>
+  <div class="pipeline">
+
+    <div class="col">
+      <p class="col-title">Tetikleyici</p>
+      <div class="node key grow">
+        <div class="node-head"><span class="node-icon">🗓️</span><h2>Deployment</h2><span class="node-meta">cron · <b>30 8 * * *</b></span></div>
+        <div class="node-body">
+          <div class="field"><div class="field-k">schedule · expression / timezone</div><strong>Her gün · 08:30</strong> <span class="sub small">Europe/Istanbul</span></div>
+          <div class="field"><div class="field-k">Durum</div><span class="tag">ilk rapor onaylandıktan sonra kurulacak</span></div>
+          <div class="field"><div class="field-k">initial_events</div><p class="small sub">Her tetiklenmede sağdaki 🎯 Outcome yeni bir ▶️ Session'a aynen aktarılır — başında kimse olmadan.</p></div>
+        </div>
+        <div class="node-foot">▶️ İstediğiniz an elle de çalışır — <code>LAUNCH.md</code> aynı agent'ı aynı Outcome ile tetikler.</div>
+      </div>
+    </div>
+
+    <div class="joint" aria-hidden="true"></div>
+
+    <div class="col">
+      <p class="col-title">İşçi</p>
+      <div class="env-frame">
+        <span class="env-tab">📦 environment · type: cloud · networking: unrestricted · packages: yok</span>
+
+        <div class="node key">
+          <div class="node-head"><span class="node-icon">🤖</span><h2>Agent — gunluk-fon-raporu</h2><span class="node-meta"><span class="dim">model canlıya alırken</span> · v1</span></div>
+          <div class="node-body">
+            <div class="field"><div class="field-k">system · işin tanımı</div>
+              <p class="small">21 X hesabının son 24 saatlik paylaşımlarını twitterapi.io'dan çeker, dört başlıkta gruplar, <code>/mnt/session/outputs/rapor.md</code> ve <code>whatsapp.txt</code> dosyalarını yazar.</p></div>
+          </div>
+        </div>
+
+        <div class="attach-grid">
+          <div class="attach">
+            <h3>🛠️ Araçlar</h3>
+            <p><code>tools[] · agent_toolset_20260401</code><br><span class="tag on">bash</span><span class="tag on">write</span><span class="tag on">web_fetch</span><span class="tag">read</span><span class="tag">edit</span><span class="tag">glob</span><span class="tag">grep</span><span class="tag">web_search</span></p>
+          </div>
+          <div class="attach">
+            <h3>🔐 Vault</h3>
+            <p><code>vault_ids[]</code> · <span class="tag good">environment_variable</span> <strong>TWITTERAPI_IO_KEY</strong> — X'in herkese açık paylaşımlarını okuyan anahtar. Agent görür, dışarı sızmaz.</p>
+          </div>
+          <div class="attach ghost">
+            <h3>🧠 Memory store</h3>
+            <p><code>resources[] · memory_store</code> — v0'da yok. "Dünkü konunun devamı" takibi aşağıdaki sürüm rayında, v2.</p>
+          </div>
+          <div class="attach ghost">
+            <h3>📄 Skills</h3>
+            <p><code>skills[]</code> — boş; çıktı düz markdown ve düz metin.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="joint" aria-hidden="true"></div>
+
+    <div class="col">
+      <p class="col-title">Çıktı &amp; notlama</p>
+
+      <div class="node">
+        <div class="node-head"><span class="node-icon">📤</span><h2>Teslim edilen</h2><span class="node-meta">files api</span></div>
+        <div class="node-body">
+          <p class="small"><code>rapor.md</code> — dört başlıklı günlük rapor. <code>whatsapp.txt</code> — WhatsApp'a olduğu gibi yapıştırılabilir düz metin.</p>
+          <div class="field"><div class="field-k">Yürürlükteki sınırlar</div>
+            <span class="tag">max_iterations: 3</span><span class="tag">sadece yazar — hiçbir yere göndermez</span></div>
+        </div>
+      </div>
+
+      <div class="node key grow">
+        <div class="node-head"><span class="node-icon">🎯</span><h2>Outcome</h2><span class="node-meta"><b>user.define_outcome</b> · max_iterations 3</span></div>
+        <div class="node-body">
+          <p class="small sub" style="margin-bottom:8px;">Sizin "bitti" tanımınız — <code>rubric.content</code>, her çalışmada platform tarafından notlanır.</p>
+          <ol class="rubric small">
+            <li>rapor.md üretilmiş, listedeki hesapların tamamı taranmış, çekilemeyenler açıkça listelenmiş</li>
+            <li>Her maddede @hesap adı ve gönderinin X bağlantısı var</li>
+            <li>Dört başlık: Mevzuat &amp; vergi · Fon &amp; piyasa · Yorum &amp; analiz · Diğer</li>
+            <li>Sadece son 24 saat; daha eski gönderi yok</li>
+            <li>whatsapp.txt düz metin, telefonda okunacak uzunlukta</li>
+            <li>Kayda değer bir şey yoksa öyle yazıyor — şişirme yok</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lane-grid">
+    <div class="lane">
+      <div class="lane-head"><span class="node-icon">📜</span><h2>Sessions · çalışma kaydı</h2><span class="lane-meta">henüz çalışma yok</span></div>
+      <div class="lane-body">
+        <div class="overflow">
+        <table>
+          <thead><tr><th>Çalışma</th><th>Session</th><th>Rubric</th><th>Karar</th><th>Not</th></tr></thead>
+          <tbody>
+            <tr><td>—</td><td class="mono">—</td><td>—</td><td><span class="tag">henüz çalışma yok</span></td><td class="sub">İlk canlıya alışta dolacak.</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+    <div class="lane">
+      <div class="lane-head"><span class="node-icon">🧪</span><h2>Evals</h2><span class="lane-meta">1 vaka · gerileme testi</span></div>
+      <div class="lane-body">
+        <div class="overflow">
+        <table>
+          <thead><tr><th>Vaka</th><th>Doğru kabul edilen cevap</th><th>Son karar</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">case-01</td><td>Onayladığınız ilk rapor</td><td><span class="tag">henüz çalışmadı</span></td></tr>
+          </tbody>
+        </table>
+        </div>
+        <p class="small sub" style="margin:.5em 0 0;">Geçmiş raporunuz olmadığı için 1. vaka bugünün çalışması; onayladığınız çıktı referans olarak saklanır ve sonraki agent sürümleri bununla karşılaştırılır.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="lane full">
+    <div class="lane-head"><span class="node-icon">🧭</span><h2>Sonraki yönler</h2><span class="lane-meta">sürüm rayı</span></div>
+    <div class="lane-body">
+      <div class="rail">
+        <div class="ver">
+          <div class="ver-tag">v1</div>
+          <div class="ver-what">Rapor kendiliğinden telefona düşsün</div>
+          <div class="ver-why">Kapsam dışı — önce raporun kendisi doğrulansın</div>
+          <div class="ver-how">WhatsApp Business API veya e-posta sağlayıcısı + 🔐 vault token, toolset <span class="mono">always_ask</span> kapısıyla</div>
+        </div>
+        <div class="ver">
+          <div class="ver-tag">v1</div>
+          <div class="ver-what">TEFAS ile sayısal doğrulama</div>
+          <div class="ver-why">Kapsam dışı — önce X tarafı otursun</div>
+          <div class="ver-how">Agent'a ücretsiz TEFAS sorgusu, Outcome'a "sayısal iddialar doğrulandı" ölçütü</div>
+        </div>
+        <div class="ver">
+          <div class="ver-tag">v2</div>
+          <div class="ver-what">Hafıza: "dünkü konunun devamı"</div>
+          <div class="ver-why">Kapsam dışı — 24 saatlik pencerede tekrar sorunu küçük</div>
+          <div class="ver-how"><span class="mono">POST /v1/memory_stores</span> + session <span class="mono">resources[]</span> read_write</div>
+        </div>
+        <div class="ver">
+          <div class="ver-tag">v2</div>
+          <div class="ver-what">Ağ erişimini kısmak</div>
+          <div class="ver-why">Sertleştirme — agent şu an sadece okuyor</div>
+          <div class="ver-how">Environment <span class="mono">networking: limited</span> + <span class="mono">allowed_hosts</span></div>
+        </div>
+        <div class="ver">
+          <div class="ver-tag">her zaman</div>
+          <div class="ver-what">Yeni sürümü deployment'a almadan önce evals'ı çalıştır</div>
+          <div class="ver-why">Süreç alışkanlığı</div>
+          <div class="ver-how">Ölçütler geçiyorsa deployment'ı güncelle, geçmiyorsa eski sürümde kal</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>build-sheet.json'dan üretildi · canlı çalışmalar ve izler: <a href="https://platform.claude.com/workspaces/default/agents">Console'u aç</a> (anahtarınızın workspace'i — sizinki farklıysa "default" yerine onu koyun)</footer>
+</div>
+</body>
+</html>
