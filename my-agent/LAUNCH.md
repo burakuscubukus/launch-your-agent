@@ -45,6 +45,15 @@ curl -sS "$BASE/files/<FILE_ID>/content" "${H[@]}" -o whatsapp.txt
 `launch.sh`'ı tekrar çalıştırmak yeni bir session açar ve aynı görevi yeniden verir.
 Environment, vault ve agent yeniden oluşturulmaz.
 
+## Günlük takvime bağlamak (ilk rapor onaylandıktan SONRA)
+
+```bash
+./schedule.sh
+```
+Her gün 08:30 (Europe/Istanbul) çalışan bir 🗓️ Deployment oluşturur, sonraki çalışma
+zamanlarını yazdırır ve elle test tetiklemesinin komutunu verir. Görev metnini önce
+sabit tarih var mı diye kontrol eder — takvimli çalışmada sabit tarih raporu bozar.
+
 ## Hesap listesini değiştirmek
 `agent.json` içindeki listeyi düzenleyin, sonra:
 ```bash
