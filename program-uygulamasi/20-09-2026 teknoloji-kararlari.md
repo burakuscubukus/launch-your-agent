@@ -111,3 +111,32 @@ Her binaya kendi kurulumu. Aylık sunucu ücreti yok, veri binadan çıkmaz.
 | ⑯ | Bayraklı ayrı MEB kurum kodlu mu? | Bekliyor |
 | ⑲ | "Bayraklı" güzergâhı ile Bayraklı kurumu aynı şey mi? | Bekliyor |
 | ①–⑮ | Plan belgesindeki diğer sorular | Bekliyor |
+
+---
+
+# EK-2 · 20-09-2026 · K-5 revize
+
+Burak'ın beyanı: *"Kurumlarda zaten KVKK ile ilgili imzalar alınmış oluyor. Bu imzaların arasında zaten bu bilgiler de yer alıyor. Kurumlar bu programı kurduğu zaman zaten bunun bilincinde olarak kuracaklar."*
+
+## K-5 (revize) · Ayrı bir KVKK adımı YOK — KARAR
+
+| Konu | Önceki öneri | Yürürlükteki karar |
+|---|---|---|
+| Yazılımda rıza toplama | Yok (zaten önerilmemişti) | Yok |
+| `kvkk_aydinlatma_tarihi`, `kvkk_acik_riza_tarihi`, `riza_belge_no` sütunları | Zorunlu | **İsteğe bağlı**, boş bırakılabilir *(Burak'ın "çıkar" demesi hâlinde tamamen kaldırılır)* |
+| Eksik rıza için kırmızı bayrak | Vardı | **İPTAL** |
+| Plan belgesindeki KVKK hukuki kontrol listesi | Eylem maddesi | **Sadece referans.** Hiçbir geliştirme adımı buna bağlı değil |
+
+**Gerekçe (Burak'ın kararı):** Rızalar veliden imzayla alınmış ve mevcut bilgiler bu imzaların kapsamında. Yazılımın yeni bir rıza süreci kurmasına gerek yok.
+
+**Zaten yapılacak olanlar (brifingin Bölüm 3'ünden, KVKK adımı olarak değil, güvenlik gereği olarak):** şifreli giriş, rol bazlı yetki, denetim kaydı (Adım 2); veri şifreleme, yedekleme/geri yükleme (Adım 12); test verisinde gerçek öğrenci adı kullanılmaması (tüm adımlar).
+
+**İleriye dönük tek not:** Başka kurumlara satışa geçildiğinde onların verisi açısından taraf sıfatı doğar ve sözleşme gereksinimi gündeme gelir. Bugünkü iki kurum (Osmangazi, Bayraklı) Burak'ın kendi kurumları olduğu için bu durum yoktur. *(Hukuki tavsiye değildir.)*
+
+## Açık soru durumu — güncel
+
+| # | Durum |
+|---|---|
+| ⑰ Öğretmen paylaşımı | CEVAPLANDI: Hayır (K-6) |
+| ⑱ Memur görünürlüğü | Kısmen cevaplandı; yönetici yetkisi Adım 2'de sorulacak |
+| ⑯, ⑲ ve ①–⑮ | Bekliyor |
