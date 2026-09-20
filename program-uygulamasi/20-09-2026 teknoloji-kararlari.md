@@ -71,3 +71,43 @@ Biri boşsa öğrenci **kırmızı bayrak** listesine düşer. Denetimde "hepsin
 ## Sıradaki adım
 
 Açık soruların (①–⑲) cevapları beklenecek; ardından Adım 0 ve 1 için onay istenecek. **Kod yazılmadı.**
+
+---
+
+# EK-1 · 20-09-2026 tarihli güncelleme
+
+Yukarıdaki hiçbir madde silinmedi; K-3 ve K-4'ün açık bırakılan noktaları aşağıda karara bağlandı.
+
+## K-6 · Kurumlar tamamen ayrı işler — KARAR
+
+Burak'ın beyanı: *"Her uzmanın veya öğretmenin girdiği kurum farklı. Girdiği dersler, girdiği öğrenciler farklı. İki ayrı kurum gibi düşün. Ayrı ayrı çalışıp ayrı ayrı onaylar oluyor."*
+
+Buna göre:
+
+| Konu | Karar |
+|---|---|
+| Öğretmen/uzman paylaşımı | **Yok.** Her personel tek kuruma bağlıdır |
+| Öğrenci paylaşımı | **Yok** |
+| Onay süreçleri | Kurum başına ayrı yürür |
+| K-3'teki "kurumlar arası çakışma kontrolü" istisnası | **İPTAL.** İzolasyon baştan sona katıdır, istisna yoktur |
+| Excel dosyaları | Kurum başına ayrı takım (Osmangazi seti / Bayraklı seti). Tek dosyada karıştırılmaz — yanlış kuruma yükleme riski sıfırlanır |
+
+**Kazanç:** daha az kod, daha az hata yüzeyi, KVKK açısından daha savunulabilir bir yapı.
+
+## K-4 güncellemesi · Kurulum yeri: **A seçeneği** — KARAR
+
+Her binaya kendi kurulumu. Aylık sunucu ücreti yok, veri binadan çıkmaz.
+
+**Kabul edilen bedel:** bakım ikiye katlanır — her güncelleme iki binaya ayrı kurulur, yedek iki yerde ayrı alınır. Unutulursa iki bina farklı sürümde kalır. **Çözüm:** Adım 12'de tek komutla çalışan kurulum/güncelleme betiği yazılacak, bu madde o adımın kabul kriterine eklendi.
+
+**Not:** Bu karar Adım 12'ye kadar geri alınabilir. Başka kurumlara satışa geçildiğinde B seçeneği (tek sunucu, çok kurum) yeniden değerlendirilecektir; mimari buna hazır kurulduğu için geçiş kod değişikliği gerektirmez.
+
+## Açık soru durumu
+
+| # | Soru | Durum |
+|---|---|---|
+| ⑰ | Aynı öğretmen iki kurumda ders veriyor mu? | **CEVAPLANDI: Hayır** → K-6 |
+| ⑱ | Memurlar iki kurumu da mı görecek? | **Kısmen:** memur yalnız kendi kurumunu görür. Yöneticinin (Burak) iki kurumu birden görme yetkisi Adım 2'de sorulacak |
+| ⑯ | Bayraklı ayrı MEB kurum kodlu mu? | Bekliyor |
+| ⑲ | "Bayraklı" güzergâhı ile Bayraklı kurumu aynı şey mi? | Bekliyor |
+| ①–⑮ | Plan belgesindeki diğer sorular | Bekliyor |
