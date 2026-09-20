@@ -140,3 +140,45 @@ Burak'ın beyanı: *"Kurumlarda zaten KVKK ile ilgili imzalar alınmış oluyor.
 | ⑰ Öğretmen paylaşımı | CEVAPLANDI: Hayır (K-6) |
 | ⑱ Memur görünürlüğü | Kısmen cevaplandı; yönetici yetkisi Adım 2'de sorulacak |
 | ⑯, ⑲ ve ①–⑮ | Bekliyor |
+
+---
+
+# EK-3 · 20-09-2026 · K-4 nihai karar
+
+## K-4 (nihai) · Kurulum yeri: **B — Türkiye'de barındırılan tek sunucu** — ONAYLANDI
+
+Önceki "A" tercihi geçersizdir. Gerekçe: Burak iki kurumun programını da kendisi yapıyor; A'da Bayraklı programı için fiziken Bayraklı'da olmak gerekiyordu.
+
+**Kurgu:** Tek kurulum · iki `kurum_id` (1 Osmangazi, 2 Bayraklı) · tek kullanıcı adı ile giriş.
+
+| Rol | Görebildiği |
+|---|---|
+| Yönetici (Burak) | Her iki kurum |
+| Memur | Yalnız kendi kurumu |
+
+→ Açık soru ⑱ bu kararla **kapandı**.
+
+### Onaylanan maliyet (Eylül 2026 araştırması)
+
+| Kalem | Tutar |
+|---|---|
+| VDS 6 sınıfı sunucu (3 çekirdek · 6 GB RAM · 60 GB NVMe) | ~226 TL/ay |
+| Alan adı `.com.tr` | ~70 TL/yıl |
+| SSL sertifikası (Let's Encrypt) | Ücretsiz |
+| Yedekleme (kuruma indirilen disk yedeği) | Ücretsiz |
+| **Toplam** | **~230 TL/ay · ~2.800 TL/yıl** |
+
+Uyarılar: fiyatlar KDV hariç ilan ediliyor · ilk yıl indirimli olup yenilemede artabilir · dövize bağlı oynar.
+**Adım 12'de 3 sağlayıcıdan güncel teklif alınıp karşılaştırılacak.** Kiralama o adıma kadar yapılmaz; geliştirme yerel sürer.
+
+Kaynak: vulut.com/sunucu/vds-server · inetmar.com/domain/domain-fiyatlari · netlen.com.tr/blog/vds-ucretleri-ne-kadar
+
+### Bu kararın plana etkisi
+
+| Adım | Değişiklik |
+|---|---|
+| Adım 2 | İnternete açık olacağı için: oturum zaman aşımı, güçlü parola zorunluluğu, hatalı giriş denemesi sınırı eklenir |
+| Adım 12 | A'nın "iki ayrı kurulum betiği" maddesi düştü. Yerine: tek sunucuya kurulum, HTTPS, otomatik günlük yedek + yedeğin kuruma indirilmesi |
+| Adım 13 | Pilot doğrudan sunucu üzerinde yapılır |
+
+**Not:** Sunucu kiralanırken sağlayıcının standart hizmet sözleşmesi imzalanır; bu, kiralama sürecinin olağan parçasıdır, ayrı bir iş değildir.
