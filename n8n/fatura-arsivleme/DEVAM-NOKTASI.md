@@ -1,6 +1,6 @@
 # n8n Fatura/Dekont Arşivleme — Devam Noktası
 
-**Son durum (27.09.2026):** Adım 3, Soru 8/9'da kalındı (OCR/etiket alanları) — cevap bekleniyor.
+**Son durum (27.09.2026):** Adım 3, Soru 9/9'da kalındı (saat dilimi) — cevap bekleniyor.
 
 ## Kurallar (Burak)
 - Her adımdan sonra dur, onay al.
@@ -24,8 +24,8 @@
 | 5 | Create Company Folder | Ana klasör "Invoices" | ✅ Drive'da oluşturuldu: "Muhasebe Arşivi" (1DoEm3V1euB_RShC2_tHuiz0L4u77-C99) > "Banka" (1r7KXw1yXnMxvGWAQWojoGS9ALH50Fx3T) + "Fatura" (1w88uJWXOnBjLAFaIB6vsjAMYxBvrZfA0). Tablodaki 'tur' sütunu hangisine gideceğini seçer. |
 | 6 | YYYY/MM | "2026/09" (UTC) | ✅ A — Banka|Fatura / Kurum / "2026-09 Eylül" (mail tarihi, İstanbul saatiyle) |
 | 7 | Upload To Folder | `zaman-dosyaadı` | ✅ A — `2026-09-25_Halkbank_orijinalad.pdf` |
-| 8 | Upload To Folder | OCR `en`, `YOUR_CREDENTIAL_HERE` etiketleri | ❓ Seçenekler: A) ikisini de kaldır (öneri) · B) tr + 'gonderen'/'mail_tarihi' |
-| 9 | Ayarlar | Saat dilimi UTC | ❓ (öneri: Europe/Istanbul) |
+| 8 | Upload To Folder | OCR `en`, `YOUR_CREDENTIAL_HERE` etiketleri | ✅ A — ikisi de kaldırılacak |
+| 9 | Ayarlar | Saat dilimi UTC | ❓ Seçenekler: A) Europe/Istanbul (öneri) · B) UTC kalsın |
 | 🔒 | Credentials | Gmail/Drive/Sheets | Boş bırakılacak |
 
 ## Sıradaki adımlar
