@@ -53,3 +53,7 @@ v1 fikri: link/gövde faturalarını PDF'e çevirip arşivlemek.
 - B: 7 yeni adres eklendi (Booking x4, Birfatura, Zotlo, Gediz) → hepsi Fatura. Tablo yeniden oluşturuldu: 13aRMVtfvBn03NsOYtvQOFuLbGvtQUQGIbaFoNL9StyY (önceki çöpte).
 - Burak'ın asıl isteği: (1) gelen her e-fatura/e-arşiv o ayın FATURA LİSTESİ tablosuna satır olarak eklensin (faturaları bu maile yönlendiriyor → anlık "hangi faturalar geldi" görünümü); (2) banka özetleri/ekstreleri arşivlensin.
 - Önerilen tasarım (onay bekliyor): Gmail filtresi = banka adresleri + "has:attachment (fatura OR e-arşiv OR e-fatura)"; listede olmayan gönderen → tur=Fatura, kurum=gönderen adı; Fatura türü için "Fatura Listesi" tablosuna satır (Ay, Tarih, Firma, Konu, Dosya, Drive linki). Tablo ekleme adımı depodaki 1764 akışının "Append to Reconciliation Sheet" kutusundan uyarlanacak. Tutar/Fatura No → v1 (UBL-XML veya yapay zekâ).
+
+## 27.09 — Gmail kurulumu
+- ✅ Etiket oluşturuldu: "Muhasebe-Arşiv" (Label_10, yeşil).
+- Filtreler: Gmail bağlantısında filtre aracı yok. Composio üzerinden (GMAIL_CREATE_FILTER) kurulabilir ama Burak'ın Gmail'i Composio'ya bağlaması gerekiyor — karar bekleniyor.
