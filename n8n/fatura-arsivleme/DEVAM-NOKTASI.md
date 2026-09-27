@@ -1,6 +1,6 @@
 # n8n Fatura/Dekont Arşivleme — Devam Noktası
 
-**Son durum (27.09.2026):** Adım 3, Soru 7/9'da kalındı (dosya adı) — cevap bekleniyor.
+**Son durum (27.09.2026):** Adım 3, Soru 8/9'da kalındı (OCR/etiket alanları) — cevap bekleniyor.
 
 ## Kurallar (Burak)
 - Her adımdan sonra dur, onay al.
@@ -23,8 +23,8 @@
 | 4 | Lookup in Sheets | e-posta → kurum satırları | ✅ 14 satır onaylandı (Foneria çıkarıldı). Liste tam adres eşleşmesi: bankaların kampanya adresleri (ör. kkm@vakifbank.com.tr) listede yok → reklamlar girmez. QNB 'Para transferi bildirimi' ve Eşarj 'aylık kullanım raporu' da gelir. |
 | 5 | Create Company Folder | Ana klasör "Invoices" | ✅ Drive'da oluşturuldu: "Muhasebe Arşivi" (1DoEm3V1euB_RShC2_tHuiz0L4u77-C99) > "Banka" (1r7KXw1yXnMxvGWAQWojoGS9ALH50Fx3T) + "Fatura" (1w88uJWXOnBjLAFaIB6vsjAMYxBvrZfA0). Tablodaki 'tur' sütunu hangisine gideceğini seçer. |
 | 6 | YYYY/MM | "2026/09" (UTC) | ✅ A — Banka|Fatura / Kurum / "2026-09 Eylül" (mail tarihi, İstanbul saatiyle) |
-| 7 | Upload To Folder | `zaman-dosyaadı` | ❓ Seçenekler: A) 2026-09-25_Halkbank_orijinalad.pdf (öneri) · B) Halkbank_2026-09-25_orijinalad.pdf · C) orijinal ad |
-| 8 | Upload To Folder | OCR `en`, `YOUR_CREDENTIAL_HERE` etiketleri | ❓ |
+| 7 | Upload To Folder | `zaman-dosyaadı` | ✅ A — `2026-09-25_Halkbank_orijinalad.pdf` |
+| 8 | Upload To Folder | OCR `en`, `YOUR_CREDENTIAL_HERE` etiketleri | ❓ Seçenekler: A) ikisini de kaldır (öneri) · B) tr + 'gonderen'/'mail_tarihi' |
 | 9 | Ayarlar | Saat dilimi UTC | ❓ (öneri: Europe/Istanbul) |
 | 🔒 | Credentials | Gmail/Drive/Sheets | Boş bırakılacak |
 
@@ -34,3 +34,4 @@
 
 ## Notlar
 - Mac kontrolü (Google Drive for Desktop) bu bulut oturumundan yapılamadı — bilgisayar kontrol aracı bağlı değil. Burak kendisi bakacak.
+- Sonraki sürüm fikri (v1): PDF içinden 'Alış/Satış', tutar gibi bilgiyi okuyup dosya adına/tabloya yazmak (yapay zekâ adımı gerekir).
