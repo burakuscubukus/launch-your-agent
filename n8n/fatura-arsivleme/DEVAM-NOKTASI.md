@@ -1,6 +1,6 @@
 # n8n Fatura/Dekont Arşivleme — Devam Noktası
 
-**Son durum (27.09.2026):** Adım 4 listesi sunuldu — onay bekleniyor — cevap bekleniyor.
+**Son durum (27.09.2026):** Adım 4 onaylandı. Adım 5 JSON hazır (muhasebe-arsivi.json); yeni göndericiler + 'Kişisel' türü sorusu bekleniyor — cevap bekleniyor.
 
 ## Kurallar (Burak)
 - Her adımdan sonra dur, onay al.
@@ -28,7 +28,7 @@
 | 9 | Ayarlar | Saat dilimi UTC | ✅ Europe/Istanbul |
 | 🔒 | Credentials | Gmail/Drive/Sheets | Boş bırakılacak |
 
-## Adım 4 — çıkarılacaklar (onay bekliyor)
+## Adım 4 — çıkarılanlar (✅ onaylandı)
 - Error Handler (stopAndError): hiçbir yere bağlı değil; depo otomatiğinin eklediği bozuk bağlantılar da siliniyor.
 - Gmail (get message) kutusu: tetikleyici ekleri zaten indirebiliyor (downloadAttachments) → gereksiz.
 - 6 İngilizce not (sticky note) → yerine 1 kısa Türkçe not.
@@ -42,3 +42,9 @@ Adım 5'te eklenecek/düzeltilecek: bağlantıları yeniden kur; listede olmayan
 ## Notlar
 - Mac kontrolü (Google Drive for Desktop) bu bulut oturumundan yapılamadı — bilgisayar kontrol aracı bağlı değil. Burak kendisi bakacak.
 - Sonraki sürüm fikri (v1): PDF içinden 'Alış/Satış', tutar gibi bilgiyi okuyup dosya adına/tabloya yazmak (yapay zekâ adımı gerekir).
+
+## Yeni gönderici araştırması (27.09)
+Ekli fatura gelenler (akış alabilir): Booking (noreply@booking.com, noreply-payments@booking.com, customer.service@booking.com, customer.service-tr@cars.booking.com), Birfatura (birfatura@ebelgebildirimi.com), Zotlo (notification@m.zotlo.com), Gediz Elektrik (noreply@gediz.com — bazen ekli, bazen sadece link), Gourme Coffee (mail@gourmecoffee.com — sipariş onayı, ek fatura mı belirsiz).
+Sadece link/gövde (akış ALAMAZ): Migros (duyuru@email.migros.com.tr — sadece sipariş onayı), Hepsiburada (link), Apple (makbuz mail gövdesinde), KKB/visionplus (bilgi), Gediz çoğu ay.
+Soru: Kişisel harcamalar (Booking tatil, Apple, eSIM) için ayrı 'Kişisel' türü/klasörü?
+v1 fikri: link/gövde faturalarını PDF'e çevirip arşivlemek.

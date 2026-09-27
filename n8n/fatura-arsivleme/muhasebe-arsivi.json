@@ -1,0 +1,507 @@
+{
+  "name": "Muhasebe Arşivi — Gmail'den Drive'a",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Muhasebe Arşivi — Gmail → Google Drive\nHer sabah 09:00'da Gmail'de **Muhasebe-Arşiv** etiketli yeni mailleri alır.\nGöndereni **Muhasebe Gönderen Listesi** tablosunda arar; listede yoksa o maili atlar.\nEkleri Drive'da **Muhasebe Arşivi / Banka|Fatura / Kurum / 2026-09 Eylül** klasörüne\n`2026-09-25_Kurum_orijinalad.pdf` adıyla kaydeder. Klasör yoksa kendisi açar.\nDışarıya hiçbir mesaj göndermez, maillere dokunmaz.",
+        "height": 260,
+        "width": 520,
+        "color": 5
+      },
+      "id": "ca8e72d8-a717-4e21-8dd3-544bece30b7b",
+      "name": "Not",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -340
+      ]
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyDay",
+              "hour": 9
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "label:muhasebe-arşiv"
+        },
+        "options": {
+          "downloadAttachments": true,
+          "dataPropertyAttachmentsPrefixName": "attachment_"
+        }
+      },
+      "id": "b971629e-7daa-4522-8e2d-3cb697e16af9",
+      "name": "Her Sabah 09:00 - Gmail",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1NnHUIBy3FT_hu1gygynud-RkqBHyg3j2b1VKT61y1Pw"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultName": "Sayfa1"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "email",
+              "lookupValue": "={{ $json.from.value[0].address }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "eb4593d4-efa9-452c-b4e7-f82acb62228b",
+      "name": "Göndereni Listede Ara",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Her ek dosyayı ayrı bir satıra çevirir; kurum, tür, ay klasörü ve dosya adını hazırlar.\nconst AYLAR = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];\nconst TUR_KLASORU = {\n  'Banka': '1r7KXw1yXnMxvGWAQWojoGS9ALH50Fx3T',\n  'Fatura': '1w88uJWXOnBjLAFaIB6vsjAMYxBvrZfA0',\n};\n\nconst satirlar = $input.all();\nconst sonuc = [];\nfor (let i = 0; i < satirlar.length; i++) {\n  const satir = satirlar[i].json;\n  const mail = $('Her Sabah 09:00 - Gmail').itemMatching(i);\n  const turKlasorId = TUR_KLASORU[satir.tur];\n  if (!turKlasorId) {\n    throw new Error(`Gönderen listesinde bilinmeyen tür: \"${satir.tur}\" (${satir.email})`);\n  }\n  const tarih = (mail.json.date ? DateTime.fromISO(String(mail.json.date)) : DateTime.now()).setZone('Europe/Istanbul');\n  for (const dosya of Object.values(mail.binary || {})) {\n    // Mail içindeki logo/imza resimlerini atla, sadece belgeleri (PDF, XML, Excel...) al\n    if ((dosya.mimeType || '').startsWith('image/')) continue;\n    sonuc.push({\n      json: {\n        company: satir.company,\n        tur: satir.tur,\n        turKlasorId,\n        klasorAy: `${tarih.toFormat('yyyy-MM')} ${AYLAR[tarih.month - 1]}`,\n        dosyaAdi: `${tarih.toFormat('yyyy-MM-dd')}_${satir.company}_${dosya.fileName}`,\n      },\n      binary: { data: dosya },\n      pairedItem: { item: i },\n    });\n  }\n}\nreturn sonuc;"
+      },
+      "id": "299d22fb-68e7-4e46-afae-fff544d16db8",
+      "name": "Ekleri Hazırla",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "3eb18ba7-0b1e-4b02-9f6a-e8785b7d2d26",
+      "name": "Tek Tek İşle",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        660,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "={{ $json.company }}",
+        "limit": 1,
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "={{ $json.turKlasorId }}"
+          },
+          "whatToSearch": "folders"
+        },
+        "options": {}
+      },
+      "id": "63ab0462-bae1-4c33-9865-3c2e96856b40",
+      "name": "Kurum Klasörünü Ara",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        880,
+        100
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "fcc84011-e9a4-42a5-9e6e-aa158df7b347",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "405feac1-c99b-4e49-91ca-18cf2dccfb54",
+      "name": "Kurum Klasörü Var mı?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1100,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $('Tek Tek İşle').item.json.company }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Tek Tek İşle').item.json.turKlasorId }}"
+        },
+        "options": {}
+      },
+      "id": "d781ec1e-5650-4124-b8a9-c7d3513b23cf",
+      "name": "Kurum Klasörünü Oluştur",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1320,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e2c14191-f1ee-48df-9286-fa11f80c24e6",
+              "name": "kurumKlasorId",
+              "type": "string",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "59d22e07-706d-44e9-99a3-ed4cb2e09300",
+      "name": "Kurum Klasörü",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1540,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "={{ $('Tek Tek İşle').item.json.klasorAy }}",
+        "limit": 1,
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "={{ $json.kurumKlasorId }}"
+          },
+          "whatToSearch": "folders"
+        },
+        "options": {}
+      },
+      "id": "0e6607a3-cb46-4971-a968-f49d9718eb67",
+      "name": "Ay Klasörünü Ara",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1760,
+        100
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c61e92a6-daca-43a0-bb32-c9a67a1ab344",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "1b512911-21b5-45d3-9b65-b661d644ac6f",
+      "name": "Ay Klasörü Var mı?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1980,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $('Tek Tek İşle').item.json.klasorAy }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Kurum Klasörü').item.json.kurumKlasorId }}"
+        },
+        "options": {}
+      },
+      "id": "9ce95b60-f576-4f4d-b5ae-10815029c1f4",
+      "name": "Ay Klasörünü Oluştur",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2200,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Ay klasörünün kimliğini ve yüklenecek dosyayı bir araya getirir.\nconst kaynak = $('Tek Tek İşle').item;\nreturn {\n  json: { ayKlasorId: $json.id, dosyaAdi: kaynak.json.dosyaAdi },\n  binary: kaynak.binary,\n};"
+      },
+      "id": "bc367248-1691-4b27-bd69-3c48dcd8350d",
+      "name": "Dosyayı Hazırla",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2420,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "name": "={{ $json.dosyaAdi }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.ayKlasorId }}"
+        },
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "id": "fdbb0318-b690-475b-9ab3-20995eb306b0",
+      "name": "Drive'a Yükle",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2640,
+        100
+      ]
+    }
+  ],
+  "connections": {
+    "Her Sabah 09:00 - Gmail": {
+      "main": [
+        [
+          {
+            "node": "Göndereni Listede Ara",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Göndereni Listede Ara": {
+      "main": [
+        [
+          {
+            "node": "Ekleri Hazırla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ekleri Hazırla": {
+      "main": [
+        [
+          {
+            "node": "Tek Tek İşle",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tek Tek İşle": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Kurum Klasörünü Ara",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Kurum Klasörünü Ara": {
+      "main": [
+        [
+          {
+            "node": "Kurum Klasörü Var mı?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Kurum Klasörü Var mı?": {
+      "main": [
+        [
+          {
+            "node": "Kurum Klasörü",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Kurum Klasörünü Oluştur",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Kurum Klasörünü Oluştur": {
+      "main": [
+        [
+          {
+            "node": "Kurum Klasörü",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Kurum Klasörü": {
+      "main": [
+        [
+          {
+            "node": "Ay Klasörünü Ara",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ay Klasörünü Ara": {
+      "main": [
+        [
+          {
+            "node": "Ay Klasörü Var mı?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ay Klasörü Var mı?": {
+      "main": [
+        [
+          {
+            "node": "Dosyayı Hazırla",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ay Klasörünü Oluştur",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ay Klasörünü Oluştur": {
+      "main": [
+        [
+          {
+            "node": "Dosyayı Hazırla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dosyayı Hazırla": {
+      "main": [
+        [
+          {
+            "node": "Drive'a Yükle",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Drive'a Yükle": {
+      "main": [
+        [
+          {
+            "node": "Tek Tek İşle",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Istanbul",
+    "saveManualExecutions": true
+  },
+  "active": false
+}
