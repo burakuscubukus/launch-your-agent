@@ -58,3 +58,5 @@ v1 fikri: link/gövde faturalarını PDF'e çevirip arşivlemek.
 - ✅ Etiket oluşturuldu: "Muhasebe-Arşiv" (Label_10, yeşil).
 - Filtreler: Gmail bağlantısında filtre aracı yok. Composio üzerinden (GMAIL_CREATE_FILTER) kurulabilir ama Burak'ın Gmail'i Composio'ya bağlaması gerekiyor — karar bekleniyor.
 - Composio Gmail bağlandı (gmail_albian-county) ama filtre oluşturma 403 ACCESS_TOKEN_SCOPE_INSUFFICIENT verdi (varsayılan Composio Gmail izninde filtre yetkisi yok). Yerine `gmail-filtreleri.xml` hazırlandı → Gmail Ayarlar > Filtreler > Filtreleri içe aktar.
+- ✅ Composio Gmail bağlantısı kaldırıldı (27.09).
+- Burak "kurulumu sen yap" dedi: bu bulut oturumunda bilgisayar/tarayıcı kontrol aracı ve n8n bağlantısı yok → filtre içe aktarma ve n8n kurulumu buradan yapılamıyor. Seçenekler: Claude masaüstü uygulamasında (bilgisayar kontrolü açık) devam etmek ya da Burak'ın kendisinin adım adım yapması.
