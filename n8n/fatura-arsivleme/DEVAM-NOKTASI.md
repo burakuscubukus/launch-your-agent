@@ -1,6 +1,6 @@
 # n8n Fatura/Dekont Arşivleme — Devam Noktası
 
-**Son durum (27.09.2026):** ✅ 5 adım tamamlandı. Son akış: `muhasebe-arsivi.json` (16 kutu), kurulum: `KURULUM.md`. Fatura Listesi tablosu: 1xtZVYBzYug25gdGftn_B89OujbZyJ4CPBbh9VPTFZWM. Sırada: Burak'ın kurulumu ve deneme sonucu.
+**Son durum (27.09.2026):** ✅ Tasarım bitti. ⏳ Birlikte kurulum: **Adım 1/8'de kalındı** (gmail-filtreleri.xml dosyasını Mac'e indirmek). Burak yarın Mac'ten devam edecek.
 
 ## Kurallar (Burak)
 - Her adımdan sonra dur, onay al.
@@ -60,3 +60,13 @@ v1 fikri: link/gövde faturalarını PDF'e çevirip arşivlemek.
 - Composio Gmail bağlandı (gmail_albian-county) ama filtre oluşturma 403 ACCESS_TOKEN_SCOPE_INSUFFICIENT verdi (varsayılan Composio Gmail izninde filtre yetkisi yok). Yerine `gmail-filtreleri.xml` hazırlandı → Gmail Ayarlar > Filtreler > Filtreleri içe aktar.
 - ✅ Composio Gmail bağlantısı kaldırıldı (27.09).
 - Burak "kurulumu sen yap" dedi: bu bulut oturumunda bilgisayar/tarayıcı kontrol aracı ve n8n bağlantısı yok → filtre içe aktarma ve n8n kurulumu buradan yapılamıyor. Seçenekler: Claude masaüstü uygulamasında (bilgisayar kontrolü açık) devam etmek ya da Burak'ın kendisinin adım adım yapması.
+
+## Birlikte kurulum planı (8 adım)
+1. gmail-filtreleri.xml'i Mac'e indir  ← BURADA
+2. Gmail ⚙️ > Tüm ayarlar > Filtreler ve Engellenen Adresler > Filtreleri içe aktar
+3. İki filtreyi oluştur (isteğe bağlı: mevcut maillere de uygula) → ekran görüntüsüyle kontrol
+4. n8n hesabına gir / aç, yeni boş akış
+5. muhasebe-arsivi.json içeriğini yapıştır
+6. Google hesaplarını bağla (Gmail, Sheets, Drive — "Sign in with Google")
+7. Deneme: bir Halkbank dekontu + bir Shell faturasına elle etiket → Fetch Test Event → Test Workflow → Drive + Fatura Listesi kontrolü
+8. Active yap; 1 hafta sonra eski "Banka ve Fatura Arşivleme" rutinini kapat
