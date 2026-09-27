@@ -1,6 +1,6 @@
 # n8n Fatura/Dekont Arşivleme — Devam Noktası
 
-**Son durum (27.09.2026):** Adım 4 onaylandı. Adım 5 JSON hazır (muhasebe-arsivi.json); yeni göndericiler + 'Kişisel' türü sorusu bekleniyor — cevap bekleniyor.
+**Son durum (27.09.2026):** ✅ 5 adım tamamlandı. Son akış: `muhasebe-arsivi.json` (16 kutu), kurulum: `KURULUM.md`. Fatura Listesi tablosu: 1xtZVYBzYug25gdGftn_B89OujbZyJ4CPBbh9VPTFZWM. Sırada: Burak'ın kurulumu ve deneme sonucu.
 
 ## Kurallar (Burak)
 - Her adımdan sonra dur, onay al.
