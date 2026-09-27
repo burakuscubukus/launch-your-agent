@@ -19,7 +19,7 @@
 |---|---|---|---|
 | 1 | Gmail Trigger | Etiket `Label_2` (Burak'ta bu = "[Imap]/Sent" — YANLIŞ) | ✅ **A** — "Muhasebe-Arşiv" etiketi + Gmail filtresi (kurulumda birlikte açılacak) |
 | 2 | Gmail Trigger | 15 dk'da bir | ✅ Günde bir kez, her sabah 09:00 (Europe/Istanbul) |
-| 3 | Lookup in Sheets | "Contacts Whitelist" tablosu | ✅ Drive'da oluşturuldu: "Muhasebe Gönderen Listesi" (ID 1NnHUIBy3FT_hu1gygynud-RkqBHyg3j2b1VKT61y1Pw (eskisi çöpe atıldı)), sütunlar email/company/tur |
+| 3 | Lookup in Sheets | "Contacts Whitelist" tablosu | ✅ Drive'da oluşturuldu: "Muhasebe Gönderen Listesi" (ID 13aRMVtfvBn03NsOYtvQOFuLbGvtQUQGIbaFoNL9StyY (eskisi çöpe atıldı)), sütunlar email/company/tur |
 | 4 | Lookup in Sheets | e-posta → kurum satırları | ✅ 14 satır onaylandı (Foneria çıkarıldı). Liste tam adres eşleşmesi: bankaların kampanya adresleri (ör. kkm@vakifbank.com.tr) listede yok → reklamlar girmez. QNB 'Para transferi bildirimi' ve Eşarj 'aylık kullanım raporu' da gelir. |
 | 5 | Create Company Folder | Ana klasör "Invoices" | ✅ Drive'da oluşturuldu: "Muhasebe Arşivi" (1DoEm3V1euB_RShC2_tHuiz0L4u77-C99) > "Banka" (1r7KXw1yXnMxvGWAQWojoGS9ALH50Fx3T) + "Fatura" (1w88uJWXOnBjLAFaIB6vsjAMYxBvrZfA0). Tablodaki 'tur' sütunu hangisine gideceğini seçer. |
 | 6 | YYYY/MM | "2026/09" (UTC) | ✅ A — Banka|Fatura / Kurum / "2026-09 Eylül" (mail tarihi, İstanbul saatiyle) |
@@ -48,3 +48,8 @@ Ekli fatura gelenler (akış alabilir): Booking (noreply@booking.com, noreply-pa
 Sadece link/gövde (akış ALAMAZ): Migros (duyuru@email.migros.com.tr — sadece sipariş onayı), Hepsiburada (link), Apple (makbuz mail gövdesinde), KKB/visionplus (bilgi), Gediz çoğu ay.
 Soru: Kişisel harcamalar (Booking tatil, Apple, eSIM) için ayrı 'Kişisel' türü/klasörü?
 v1 fikri: link/gövde faturalarını PDF'e çevirip arşivlemek.
+
+## 27.09 — Karar B + yeni istek
+- B: 7 yeni adres eklendi (Booking x4, Birfatura, Zotlo, Gediz) → hepsi Fatura. Tablo yeniden oluşturuldu: 13aRMVtfvBn03NsOYtvQOFuLbGvtQUQGIbaFoNL9StyY (önceki çöpte).
+- Burak'ın asıl isteği: (1) gelen her e-fatura/e-arşiv o ayın FATURA LİSTESİ tablosuna satır olarak eklensin (faturaları bu maile yönlendiriyor → anlık "hangi faturalar geldi" görünümü); (2) banka özetleri/ekstreleri arşivlensin.
+- Önerilen tasarım (onay bekliyor): Gmail filtresi = banka adresleri + "has:attachment (fatura OR e-arşiv OR e-fatura)"; listede olmayan gönderen → tur=Fatura, kurum=gönderen adı; Fatura türü için "Fatura Listesi" tablosuna satır (Ay, Tarih, Firma, Konu, Dosya, Drive linki). Tablo ekleme adımı depodaki 1764 akışının "Append to Reconciliation Sheet" kutusundan uyarlanacak. Tutar/Fatura No → v1 (UBL-XML veya yapay zekâ).
