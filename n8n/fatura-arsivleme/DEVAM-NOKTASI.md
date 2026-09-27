@@ -1,6 +1,6 @@
 # n8n Fatura/Dekont Arşivleme — Devam Noktası
 
-**Son durum (26.09.2026):** Adım 3, Soru 1/9'da kalındı — cevap bekleniyor.
+**Son durum (27.09.2026):** Adım 3, Soru 2/9'da kalındı — cevap bekleniyor.
 
 ## Kurallar (Burak)
 - Her adımdan sonra dur, onay al.
@@ -17,8 +17,8 @@
 ## Adım 3 — doldurulacak 9 değer
 | # | Kutu | Şablon değeri | Cevap |
 |---|---|---|---|
-| 1 | Gmail Trigger | Etiket `Label_2` (Burak'ta bu = "[Imap]/Sent" — YANLIŞ) | ❓ Seçenekler: A) "Muhasebe-Arşiv" etiketi + Gmail filtresi (öneri) · B) etiket yok, ekli tüm mailler · C) başka ad |
-| 2 | Gmail Trigger | 15 dk'da bir | ❓ |
+| 1 | Gmail Trigger | Etiket `Label_2` (Burak'ta bu = "[Imap]/Sent" — YANLIŞ) | ✅ **A** — "Muhasebe-Arşiv" etiketi + Gmail filtresi (kurulumda birlikte açılacak) |
+| 2 | Gmail Trigger | 15 dk'da bir | ❓ Seçenekler: A) saatte bir (öneri) · B) 15 dk · C) günde bir 09:00 |
 | 3 | Lookup in Sheets | "Contacts Whitelist" tablosu | ❓ |
 | 4 | Lookup in Sheets | e-posta → kurum satırları | ❓ (bilinenler: mobil.sube@halkbank.com.tr, ekstre@ekstre.yapikredi.com.tr, İş/Ziraat/Vakıf/Garanti/QNB, Akıntürk Petrol, Shell, esarj, Uyumsoft, Birfatura) |
 | 5 | Create Company Folder | Ana klasör "Invoices" | ❓ |
