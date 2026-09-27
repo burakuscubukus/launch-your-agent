@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns='http://www.w3.org/2005/Atom' xmlns:apps='http://schemas.google.com/apps/2006'>
+  <title>Mail Filters</title>
+  <entry>
+    <category term='filter'></category>
+    <title>Mail Filter</title>
+    <content></content>
+    <apps:property name='from' value='mobil.sube@halkbank.com.tr OR bilgilendirme@ileti.isbank.com.tr OR ziraat@ileti.ziraatbank.com.tr OR ziraatbankasi@ileti.ziraatbank.com.tr OR ekstre@vakifbank.com.tr OR dekont@garantibbva.com.tr OR email@email.qnb.com.tr OR ekstre@ekstre.yapikredi.com.tr OR halkyatirim@e.halkyatirim.com.tr OR bilgilendirme@akinturk.com OR bilgilendirme2@akinturk.com OR EARSIVFATURA@turkiyeshell.com OR no-reply@esarj.com OR uyumsoft@erp.uyumsoftmail.com OR noreply@booking.com OR noreply-payments@booking.com OR customer.service@booking.com OR customer.service-tr@cars.booking.com OR birfatura@ebelgebildirimi.com OR notification@m.zotlo.com OR noreply@gediz.com'/>
+    <apps:property name='hasAttachment' value='true'/>
+    <apps:property name='label' value='Muhasebe-Arşiv'/>
+    <apps:property name='sizeOperator' value='s_sl'/>
+    <apps:property name='sizeUnit' value='s_smb'/>
+  </entry>
+  <entry>
+    <category term='filter'></category>
+    <title>Mail Filter</title>
+    <content></content>
+    <apps:property name='hasTheWord' value='fatura OR e-arşiv OR earşiv OR e-fatura OR makbuz OR invoice'/>
+    <apps:property name='hasAttachment' value='true'/>
+    <apps:property name='label' value='Muhasebe-Arşiv'/>
+    <apps:property name='sizeOperator' value='s_sl'/>
+    <apps:property name='sizeUnit' value='s_smb'/>
+  </entry>
+</feed>

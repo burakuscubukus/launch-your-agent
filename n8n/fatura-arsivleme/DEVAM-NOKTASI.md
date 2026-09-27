@@ -57,3 +57,4 @@ v1 fikri: link/gövde faturalarını PDF'e çevirip arşivlemek.
 ## 27.09 — Gmail kurulumu
 - ✅ Etiket oluşturuldu: "Muhasebe-Arşiv" (Label_10, yeşil).
 - Filtreler: Gmail bağlantısında filtre aracı yok. Composio üzerinden (GMAIL_CREATE_FILTER) kurulabilir ama Burak'ın Gmail'i Composio'ya bağlaması gerekiyor — karar bekleniyor.
+- Composio Gmail bağlandı (gmail_albian-county) ama filtre oluşturma 403 ACCESS_TOKEN_SCOPE_INSUFFICIENT verdi (varsayılan Composio Gmail izninde filtre yetkisi yok). Yerine `gmail-filtreleri.xml` hazırlandı → Gmail Ayarlar > Filtreler > Filtreleri içe aktar.
