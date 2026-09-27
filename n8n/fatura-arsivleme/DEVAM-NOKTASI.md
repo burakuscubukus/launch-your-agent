@@ -1,6 +1,6 @@
 # n8n Fatura/Dekont Arşivleme — Devam Noktası
 
-**Son durum (27.09.2026):** Adım 3, Soru 9/9'da kalındı (saat dilimi) — cevap bekleniyor.
+**Son durum (27.09.2026):** Adım 4 listesi sunuldu — onay bekleniyor — cevap bekleniyor.
 
 ## Kurallar (Burak)
 - Her adımdan sonra dur, onay al.
@@ -25,11 +25,18 @@
 | 6 | YYYY/MM | "2026/09" (UTC) | ✅ A — Banka|Fatura / Kurum / "2026-09 Eylül" (mail tarihi, İstanbul saatiyle) |
 | 7 | Upload To Folder | `zaman-dosyaadı` | ✅ A — `2026-09-25_Halkbank_orijinalad.pdf` |
 | 8 | Upload To Folder | OCR `en`, `YOUR_CREDENTIAL_HERE` etiketleri | ✅ A — ikisi de kaldırılacak |
-| 9 | Ayarlar | Saat dilimi UTC | ❓ Seçenekler: A) Europe/Istanbul (öneri) · B) UTC kalsın |
+| 9 | Ayarlar | Saat dilimi UTC | ✅ Europe/Istanbul |
 | 🔒 | Credentials | Gmail/Drive/Sheets | Boş bırakılacak |
 
+## Adım 4 — çıkarılacaklar (onay bekliyor)
+- Error Handler (stopAndError): hiçbir yere bağlı değil; depo otomatiğinin eklediği bozuk bağlantılar da siliniyor.
+- Gmail (get message) kutusu: tetikleyici ekleri zaten indirebiliyor (downloadAttachments) → gereksiz.
+- 6 İngilizce not (sticky note) → yerine 1 kısa Türkçe not.
+- Sahte meta bilgiler (tags 'production-ready/excellent', '25 nodes' açıklaması, owner/priority vb.).
+- Dışarıya mesaj gönderen adım: YOK (şablonda hiç yok).
+Adım 5'te eklenecek/düzeltilecek: bağlantıları yeniden kur; listede olmayan göndericide dur (filtre); kurum klasörünü sadece Banka/Fatura içinde ara; eski 'function' kutusunu 'Code' ile değiştir; ay adı + dosya adı + saat dilimi.
+
 ## Sıradaki adımlar
-4. Gereksiz adımları çıkar, listele.
 5. Yapıştırılacak son JSON + kurulum sırası.
 
 ## Notlar
