@@ -1,6 +1,6 @@
 # n8n Fatura/Dekont Arşivleme — Devam Noktası
 
-**Son durum (27.09.2026):** Adım 3, Soru 5/9'da kalındı (ana klasör) — cevap bekleniyor.
+**Son durum (27.09.2026):** Adım 3, Soru 6/9'da kalındı (klasör/ay düzeni) — cevap bekleniyor.
 
 ## Kurallar (Burak)
 - Her adımdan sonra dur, onay al.
@@ -21,8 +21,8 @@
 | 2 | Gmail Trigger | 15 dk'da bir | ✅ Günde bir kez, her sabah 09:00 (Europe/Istanbul) |
 | 3 | Lookup in Sheets | "Contacts Whitelist" tablosu | ✅ Drive'da oluşturuldu: "Muhasebe Gönderen Listesi" (ID 1NnHUIBy3FT_hu1gygynud-RkqBHyg3j2b1VKT61y1Pw (eskisi çöpe atıldı)), sütunlar email/company/tur |
 | 4 | Lookup in Sheets | e-posta → kurum satırları | ✅ 14 satır onaylandı (Foneria çıkarıldı). Liste tam adres eşleşmesi: bankaların kampanya adresleri (ör. kkm@vakifbank.com.tr) listede yok → reklamlar girmez. QNB 'Para transferi bildirimi' ve Eşarj 'aylık kullanım raporu' da gelir. |
-| 5 | Create Company Folder | Ana klasör "Invoices" | ❓ Seçenekler: A) Drive'da "Muhasebe Arşivi" > Banka / Fatura alt klasörleri (öneri) · B) tek klasör "Muhasebe Arşivi" · C) başka ad |
-| 6 | YYYY/MM | "2026/09" (UTC) | ❓ (mevcut düzen: Türkçe ay adı "Eylül") |
+| 5 | Create Company Folder | Ana klasör "Invoices" | ✅ Drive'da oluşturuldu: "Muhasebe Arşivi" (1DoEm3V1euB_RShC2_tHuiz0L4u77-C99) > "Banka" (1r7KXw1yXnMxvGWAQWojoGS9ALH50Fx3T) + "Fatura" (1w88uJWXOnBjLAFaIB6vsjAMYxBvrZfA0). Tablodaki 'tur' sütunu hangisine gideceğini seçer. |
+| 6 | YYYY/MM | "2026/09" (UTC) | ❓ Seçenekler: A) Kurum > "2026-09 Eylül" (öneri) · B) bugünkü gibi (Banka: sadece kurum; Fatura: sadece ay) · C) sadece "Eylül" |
 | 7 | Upload To Folder | `zaman-dosyaadı` | ❓ (mevcut düzen: `Halkbank_Dekont_2026-09-25.pdf`) |
 | 8 | Upload To Folder | OCR `en`, `YOUR_CREDENTIAL_HERE` etiketleri | ❓ |
 | 9 | Ayarlar | Saat dilimi UTC | ❓ (öneri: Europe/Istanbul) |
