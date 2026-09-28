@@ -1,6 +1,6 @@
 # n8n Fatura/Dekont Arşivleme — Devam Noktası
 
-**Son durum (28.09.2026):** ✅ Gmail filtresi kuruldu (tek filtre, Gmail arayüzünden) ve eski maillere uygulandı — ~200 ileti 'Muhasebe-Arşiv' etiketi aldı; `label:muhasebe-arşiv` sorgusu doğrulandı. ⏳ Sırada: Adım 4/8 n8n hesabı.
+**Son durum (28.09.2026):** ✅ Gmail filtresi kurulu. ⛔ Adım 4'te durduk: n8n hesabı yok ve Burak **ücretli bir şey istemiyor**. Karar bekleniyor: A) Google Apps Script (ücretsiz, Google bulutunda, Mac gerekmez — önerilen) · B) n8n'i ücretsiz olarak Mac'te çalıştırmak (Mac açık olmalı) · C) mevcut Claude rutini.
 
 ## Kurallar (Burak)
 - Her adımdan sonra dur, onay al.
