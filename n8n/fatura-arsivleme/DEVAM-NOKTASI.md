@@ -1,6 +1,6 @@
 # n8n Fatura/Dekont Arşivleme — Devam Noktası
 
-**Son durum (27.09.2026):** ✅ Tasarım bitti. ⏳ Birlikte kurulum: **Adım 1/8'de kalındı** (gmail-filtreleri.xml dosyasını Mac'e indirmek). Burak yarın Mac'ten devam edecek.
+**Son durum (28.09.2026):** ✅ Gmail filtresi kuruldu (tek filtre, Gmail arayüzünden) ve eski maillere uygulandı — ~200 ileti 'Muhasebe-Arşiv' etiketi aldı; `label:muhasebe-arşiv` sorgusu doğrulandı. ⏳ Sırada: Adım 4/8 n8n hesabı.
 
 ## Kurallar (Burak)
 - Her adımdan sonra dur, onay al.
@@ -70,3 +70,8 @@ v1 fikri: link/gövde faturalarını PDF'e çevirip arşivlemek.
 6. Google hesaplarını bağla (Gmail, Sheets, Drive — "Sign in with Google")
 7. Deneme: bir Halkbank dekontu + bir Shell faturasına elle etiket → Fetch Test Event → Test Workflow → Drive + Fatura Listesi kontrolü
 8. Active yap; 1 hafta sonra eski "Banka ve Fatura Arşivleme" rutinini kapat
+
+## 28.09 notları
+- Filtre: "İçerdiği kelimeler" = {from:...21 adres... fatura e-arşiv earşiv e-fatura makbuz invoice} + Eki var → Etiket: Muhasebe-Arşiv (+ eski maillere uygulandı).
+- Gözlem: Burak kendine "Fatura - iPhone'umdan gönderildi" mailleri atıyor; bazılarının eki FOTOĞRAF (PHOTO-...jpg). Akış şu an image/* ekleri atlıyor → düzeltme önerildi, karar bekliyor.
+- Gözlem: kendi gönderdiği (SENT) fatura mailleri de etiketlendi; n8n tetikleyicisi bunları da alabilir (kurum adı gönderen adı olur).
