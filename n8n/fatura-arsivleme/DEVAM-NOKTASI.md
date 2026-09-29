@@ -1,6 +1,6 @@
 # n8n Fatura/Dekont Arşivleme — Devam Noktası
 
-**Son durum (28.09.2026):** ✅ Gmail filtresi kurulu. ⛔ Adım 4'te durduk: n8n hesabı yok ve Burak **ücretli bir şey istemiyor**. Karar bekleniyor: A) Google Apps Script (ücretsiz, Google bulutunda, Mac gerekmez — önerilen) · B) n8n'i ücretsiz olarak Mac'te çalıştırmak (Mac açık olmalı) · C) mevcut Claude rutini.
+**Son durum (29.09.2026):** Karar **A — Google Apps Script** (n8n ücretli). Betik hazır: `apps-script/muhasebe-arsivi.gs` + `apps-script/KURULUM.md` (sahte Google servisleriyle test edildi). ⏳ Sırada: Burak script.google.com'a yapıştırıp 'kurulum' ve 'muhasebeArsivle'yi çalıştıracak (ilk çalışma son 7 günü arşivler).
 
 ## Kurallar (Burak)
 - Her adımdan sonra dur, onay al.
@@ -75,3 +75,8 @@ v1 fikri: link/gövde faturalarını PDF'e çevirip arşivlemek.
 - Filtre: "İçerdiği kelimeler" = {from:...21 adres... fatura e-arşiv earşiv e-fatura makbuz invoice} + Eki var → Etiket: Muhasebe-Arşiv (+ eski maillere uygulandı).
 - Gözlem: Burak kendine "Fatura - iPhone'umdan gönderildi" mailleri atıyor; bazılarının eki FOTOĞRAF (PHOTO-...jpg). Akış şu an image/* ekleri atlıyor → düzeltme önerildi, karar bekliyor.
 - Gözlem: kendi gönderdiği (SENT) fatura mailleri de etiketlendi; n8n tetikleyicisi bunları da alabilir (kurum adı gönderen adı olur).
+
+## Apps Script tasarımı (29.09)
+- n8n akışıyla aynı mantık; ek olarak: fatura FOTOĞRAFLARI alınır (satır içi logolar ve <30 KB resimler atlanır), aynı adlı dosya varsa tekrar yüklenmez, son çalışma zamanı ScriptProperties'te (SON_CALISMA).
+- Zamanlayıcı: her gün 09:00 Europe/Istanbul (kurulum fonksiyonu kurar).
+- Burak'ın kendine attığı fatura mailleri 'Fatura/Burak Çubuk/…' klasörüne düşer.
