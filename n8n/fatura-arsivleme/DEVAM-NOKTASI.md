@@ -1,6 +1,6 @@
 # n8n Fatura/Dekont Arşivleme — Devam Noktası
 
-**Son durum (29.09.2026):** Karar **A — Google Apps Script** (n8n ücretli). Betik hazır: `apps-script/muhasebe-arsivi.gs` + `apps-script/KURULUM.md` (sahte Google servisleriyle test edildi). ⏳ Sırada: Burak script.google.com'a yapıştırıp 'kurulum' ve 'muhasebeArsivle'yi çalıştıracak (ilk çalışma son 7 günü arşivler).
+**Son durum (29.09.2026):** ✅ CANLI. Apps Script kuruldu (Burak'ın hesabı, proje 'Adsız proje'), zamanlayıcı her gün 09:00 İstanbul. İlk çalışma: 5 mail, 6 dosya, 1 fatura satırı (Halkbank 24+25.09 dekont, İş Bankası 2 aylık özet, Gourme Coffee sipariş belgeleri). Sırada: 1 hafta izleme → eski 'Banka ve Fatura Arşivleme' rutinini kapatmak; ay sonu KDV.
 
 ## Kurallar (Burak)
 - Her adımdan sonra dur, onay al.
@@ -85,3 +85,9 @@ v1 fikri: link/gövde faturalarını PDF'e çevirip arşivlemek.
 - Burak: faturalar firma değil AY bazında toplanmalı (aylık KDV/vergi hesabı için). Yeni düzen: Fatura / 2026-09 Eylül / 2026-09-25_Firma_ad.pdf. Banka düzeni aynı (Banka / Kurum / Ay).
 - Ay = mailin geldiği tarih (fatura tarihi PDF içinde; okumak için ayrı adım gerekir → sonraki sürüm).
 - Apps Script: satır 91-92 değişti. Burak betiği yapıştırdı, 'kurulum' henüz çalıştırılmadı.
+
+## 29.09 ilk çalışma doğrulaması (Drive'dan kontrol edildi)
+- Banka/Halkbank/2026-09 Eylül: 2026-09-24_Halkbank_Dekont.pdf, 2026-09-25_Halkbank_Dekont.pdf
+- Banka/İş Bankası/2026-09 Eylül: 2 aylık özet raporu
+- Fatura/2026-09 Eylül: Gourme Coffee ön bilgilendirme + satış sözleşmesi (gerçek fatura DEĞİL; mail gövdesinde 'fatura' kelimesi geçtiği için alındı) → Fatura Listesi'nde 1 satır.
+- Ziraat ekstresi (21.09) 7 günlük pencerenin dışında kaldı.
