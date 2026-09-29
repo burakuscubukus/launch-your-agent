@@ -80,3 +80,8 @@ v1 fikri: link/gövde faturalarını PDF'e çevirip arşivlemek.
 - n8n akışıyla aynı mantık; ek olarak: fatura FOTOĞRAFLARI alınır (satır içi logolar ve <30 KB resimler atlanır), aynı adlı dosya varsa tekrar yüklenmez, son çalışma zamanı ScriptProperties'te (SON_CALISMA).
 - Zamanlayıcı: her gün 09:00 Europe/Istanbul (kurulum fonksiyonu kurar).
 - Burak'ın kendine attığı fatura mailleri 'Fatura/Burak Çubuk/…' klasörüne düşer.
+
+## 29.09 — klasör düzeni değişti
+- Burak: faturalar firma değil AY bazında toplanmalı (aylık KDV/vergi hesabı için). Yeni düzen: Fatura / 2026-09 Eylül / 2026-09-25_Firma_ad.pdf. Banka düzeni aynı (Banka / Kurum / Ay).
+- Ay = mailin geldiği tarih (fatura tarihi PDF içinde; okumak için ayrı adım gerekir → sonraki sürüm).
+- Apps Script: satır 91-92 değişti. Burak betiği yapıştırdı, 'kurulum' henüz çalıştırılmadı.

@@ -3,7 +3,7 @@
  *
  * Her sabah 09:00'da Gmail'de "Muhasebe-Arşiv" etiketli yeni mailleri alır.
  *  - Bankalar: yalnızca Muhasebe Gönderen Listesi'ndeki adresler → Banka / Kurum / 2026-09 Eylül
- *  - Faturalar: listede olsun olmasın fatura mailleri → Fatura / Firma / 2026-09 Eylül
+ *  - Faturalar: listede olsun olmasın fatura mailleri → Fatura / 2026-09 Eylül (ayın bütün faturaları tek klasörde)
  *    + Fatura Listesi tablosuna bir satır
  * Dosya adı: 2026-09-25_Firma_orijinalad.pdf  ·  Klasör yoksa kendisi açar.
  * Dışarıya hiçbir mesaj göndermez, maillere dokunmaz (silmez, taşımaz, etiket değiştirmez).
@@ -96,8 +96,8 @@ function mesajiIsle_(mesaj, liste, sayac) {
   const bicim = k => Utilities.formatDate(tarih, AYAR.SAAT_DILIMI, k);
   const klasorAy = `${bicim('yyyy-MM')} ${AYLAR[Number(bicim('M')) - 1]}`;
 
-  const kurumKlasoru = altKlasor_(DriveApp.getFolderById(turKlasorId), kurum);
-  const ayKlasoru = altKlasor_(kurumKlasoru, klasorAy);
+  const turKlasoru = DriveApp.getFolderById(turKlasorId);
+  const ayKlasoru = tur === 'Fatura' ? altKlasor_(turKlasoru, klasorAy) : altKlasor_(altKlasor_(turKlasoru, kurum), klasorAy);
 
   // Fatura listesine her mail için tek satır: varsa PDF, yoksa ilk belge
   const anaBelge = belgeler.find(e => e.getContentType().includes('pdf')) || belgeler[0];
