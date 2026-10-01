@@ -51,10 +51,12 @@ const AYAR = {
   ILK_CALISMA_GUN: 7,
   // gecmisiArsivle bu tarihten itibaren her şeyi tarar (yıl-ay-gün)
   GECMIS_BASLANGIC: '2026-01-01',
+  // Geçmiş taranırken her turda kaç günlük dilim işlensin (arama hızlı kalsın diye)
+  GECMIS_PENCERE_GUN: 31,
   // Bu boyuttan küçük resimler imza/logo sayılır ve atlanır (fatura fotoğrafları alınır)
   MIN_RESIM_BOYUTU: 30 * 1024,
   FATURA_KELIMELERI: /fatura|e-ar[sş]iv|earsiv|e-fatura|invoice|makbuz|receipt/i,
-  BANKA_KELIMELERI: /ekstre|dekont|hesap [öo]zet|hareket|icmal/i,
+  BANKA_KELIMELERI: /ekstre|dekont|hesap [öo]zet|hareket|icmal|[öo]deme belge|makbuz/i,
   // Apps Script tek seferde 6 dk çalışabilir; 5 dk'da durup kaldığı yeri kaydeder
   SURE_SINIRI_MS: 5 * 60 * 1000,
 };
@@ -74,34 +76,50 @@ function kurulum() {
 
 /**
  * Geçmişi tamamlar: GECMIS_BASLANGIC'tan bugüne her şeyi tarar. Daha önce arşivlenen belgeler
- * tekrar yüklenmez. "Yarıda kaldı" yazarsa bir kez daha çalıştır; "Bitti" yazana kadar.
+ * tekrar yüklenmez. Bir kez çalıştırman yeter: süre dolarsa 1 dk sonra kendini yeniden başlatır,
+ * bugüne gelince durur. İlerlemeyi Kontrol sekmesinden izleyebilirsin.
  */
 function gecmisiArsivle() {
+  ScriptApp.getProjectTriggers()
+    .filter(t => t.getHandlerFunction() === 'gecmisiArsivle')
+    .forEach(t => ScriptApp.deleteTrigger(t));
   const ozellikler = PropertiesService.getScriptProperties();
   if (!ozellikler.getProperty('GECMIS_DEVAM')) {
     const [y, a, g] = AYAR.GECMIS_BASLANGIC.split('-').map(Number);
     ozellikler.setProperty('SON_CALISMA', String(new Date(y, a - 1, g).getTime()));
     ozellikler.setProperty('GECMIS_DEVAM', '1');
   }
-  const bitti = muhasebeArsivle();
-  if (bitti) ozellikler.deleteProperty('GECMIS_DEVAM');
+  const bitti = muhasebeArsivle(AYAR.GECMIS_PENCERE_GUN);
+  if (bitti) {
+    ozellikler.deleteProperty('GECMIS_DEVAM');
+    Logger.log('Geçmiş tamamlandı: bugüne kadar her şey tarandı.');
+  } else {
+    ScriptApp.newTrigger('gecmisiArsivle').timeBased().after(60 * 1000).create();
+    Logger.log('Devam ediyor: 1 dk sonra kendiliğinden sürecek, bir şey yapmana gerek yok.');
+  }
 }
 
-/** Asıl iş: yeni mailleri arşivler. Zamanlayıcı bunu her sabah çağırır. Bitirdiyse true döner. */
-function muhasebeArsivle() {
+/**
+ * Asıl iş: yeni mailleri arşivler. Zamanlayıcı bunu her sabah çağırır. Bugüne kadar bitirdiyse true döner.
+ * pencereGun verilirse (geçmiş taraması) yalnızca o kadar günlük dilimi işler.
+ */
+function muhasebeArsivle(pencereGun) {
   const ozellikler = PropertiesService.getScriptProperties();
   const baslangic = Date.now();
   const sonCalisma = Number(ozellikler.getProperty('SON_CALISMA')) ||
     baslangic - AYAR.ILK_CALISMA_GUN * 24 * 60 * 60 * 1000;
+  // Zamanlayıcı bu fonksiyona bir olay nesnesi geçirir; yalnızca sayı ise dilim uygulanır
+  const dilimSonu = typeof pencereGun === 'number'
+    ? Math.min(baslangic, sonCalisma + pencereGun * 24 * 60 * 60 * 1000) : baslangic;
 
   const liste = gonderenListesiniOku_();
   const kontrol = kontrolSayfasi_();
   const sayac = { mail: 0, dosya: 0, fatura: 0, elle: 0, atlanan: 0 };
 
   // En eskiden en yeniye işle; süre biterse kaldığı yer kaydedilir, yarın oradan devam eder
-  const mesajlar = adayMesajlar_(sonCalisma, liste);
-  let kaldigiYer = baslangic;
-  let bitti = true;
+  const mesajlar = adayMesajlar_(sonCalisma, dilimSonu, liste);
+  let kaldigiYer = dilimSonu;
+  let bitti = dilimSonu >= baslangic;
   for (const mesaj of mesajlar) {
     if (Date.now() - baslangic > AYAR.SURE_SINIRI_MS) {
       kaldigiYer = mesaj.getDate().getTime() - 1000;
@@ -113,14 +131,14 @@ function muhasebeArsivle() {
 
   ozellikler.setProperty('SON_CALISMA', String(kaldigiYer));
   Logger.log('%s: %s mail, %s dosya arşivlendi, %s fatura listeye yazıldı, %s fatura ELLE İNDİRİLMELİ, %s mail atlandı.',
-    bitti ? 'Bitti' : 'Yarıda kaldı (süre doldu) — bir kez daha çalıştır',
+    bitti ? 'Bitti' : `${Utilities.formatDate(new Date(kaldigiYer), AYAR.SAAT_DILIMI, 'dd.MM.yyyy')} tarihine kadar tamam, devam edecek`,
     sayac.mail, sayac.dosya, sayac.fatura, sayac.elle, sayac.atlanan);
   return bitti;
 }
 
 /** Etikete güvenmeden geniş arama: banka alan adları, listedeki göndericiler, fatura kelimeleri. */
-function adayMesajlar_(sonCalisma, liste) {
-  const sonra = `after:${Math.floor(sonCalisma / 1000)}`;
+function adayMesajlar_(sonCalisma, dilimSonu, liste) {
+  const sonra = `after:${Math.floor(sonCalisma / 1000)} before:${Math.floor(dilimSonu / 1000) + 1}`;
   const gondericiler = Object.keys(AYAR.BANKA_ALANLARI).concat(Object.keys(liste));
   const sorgular = [
     `label:${AYAR.ETIKET} ${sonra}`,
@@ -138,7 +156,8 @@ function adayMesajlar_(sonCalisma, liste) {
       for (const dizi of diziler) {
         for (const mesaj of dizi.getMessages()) {
           const id = mesaj.getId();
-          if (goruldu[id] || mesaj.getDate().getTime() <= sonCalisma || mesaj.isInTrash()) continue;
+          const zaman = mesaj.getDate().getTime();
+          if (goruldu[id] || zaman <= sonCalisma || zaman > dilimSonu || mesaj.isInTrash()) continue;
           goruldu[id] = true;
           sonuc.push(mesaj);
         }
@@ -207,7 +226,9 @@ function mesajiIsle_(mesaj, liste, kontrol, sayac) {
   for (const ek of belgeler) {
     const dosyaAdi = benzersizAd_(ayKlasoru, `${bicim('yyyy-MM-dd')}_${kurum}_${ek.getName()}`, ek, mesaj.getId());
     if (!dosyaAdi) continue; // bu belge daha önce arşivlenmiş
-    const dosya = ayKlasoru.createFile(ek.copyBlob().setName(dosyaAdi));
+    const blob = ek.copyBlob().setName(dosyaAdi);
+    if (/\.pdf$/i.test(dosyaAdi) && !/pdf/i.test(ek.getContentType())) blob.setContentType('application/pdf');
+    const dosya = ayKlasoru.createFile(blob);
     yuklenen.push(dosyaAdi);
     sayac.dosya++;
     if (tur === 'Fatura' && ek === anaBelge) {

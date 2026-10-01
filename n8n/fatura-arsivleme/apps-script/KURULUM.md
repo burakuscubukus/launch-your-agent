@@ -7,8 +7,9 @@ Gmail etiketi/filtresi, Drive klasörleri, Gönderen Listesi ve Fatura Listesi z
 2. İçindeki her şeyi sil (⌘A → Sil), `muhasebe-arsivi.gs` içeriğini yapıştır → **⌘S**.
 3. Üstteki fonksiyon menüsünden **gecmisiArsivle** seç → **Çalıştır**.
    - Yeni izin isterse (Kontrol sayfası için) → **İzin ver**.
-   - Altta "Bitti: …" yazana kadar tekrar **Çalıştır** (her tur en fazla 5 dk; "Yarıda kaldı" yazarsa bir daha bas).
+   - Bir kez basman yeter: her turda ~1 aylık dilimi işler, sonra 1 dk içinde kendini yeniden başlatır, bugüne gelince durur.
    - 1 Ocak 2026'dan bugüne her şey taranır; daha önce arşivlenen dosyalar tekrar yüklenmez.
+   - İlerlemeyi Kontrol sekmesinde tarihlerin ilerlemesinden izleyebilirsin.
 4. Kontrol: Drive → Fatura Listesi → alttaki **Kontrol** sekmesi.
    - **ELLE İNDİR** satırları: eki olmayan, linkle gelen faturalar → linke tıkla, PDF'i indir, Fatura/ay klasörüne koy.
    - **KONTROL ET** satırları: banka maili ama ekstre/dekont gibi görünmüyor → bak, gerekiyorsa elle koy.
