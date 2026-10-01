@@ -1,0 +1,277 @@
+/**
+ * Muhasebe Arşivi — Gmail'den Google Drive'a (Google Apps Script) · sürüm 2
+ *
+ * Her sabah 09:00'da Gmail'i tarar; banka ekstre/dekontlarını ve faturaları Drive'a koyar.
+ *  - Bankalar: gönderen alan adına bakılır (halkbank.com.tr, isbank.com.tr …) — bankanın hangi
+ *    adresten yazdığı önemli değil → Banka / Kurum / 2026-09 Eylül
+ *  - Faturalar: Gönderen Listesi'ndeki firmalar + konusunda/metninde fatura geçen ekli mailler
+ *    → Fatura / 2026-09 Eylül  + Fatura Listesi tablosuna bir satır
+ *  - Gmail'de elle "Muhasebe-Arşiv" etiketi koyduğun her mail de alınır.
+ *  - HİÇBİR ŞEY SESSİZCE ATLANMAZ: her aday mail, Fatura Listesi dosyasındaki "Kontrol" sayfasına
+ *    sonucuyla yazılır. Eki olmayan (sadece link ile gelen) faturalar "ELLE İNDİR" diye işaretlenir.
+ * Dosya adı: 2026-09-25_Firma_orijinalad.pdf — aynı adlı ama farklı bir belge gelirse sonuna mail
+ * kimliği eklenir (ör. aynı gün 3 kart için 3 ayrı ekstre). Aynı belge iki kez yüklenmez.
+ * Dışarıya hiçbir mesaj göndermez, maillere dokunmaz (silmez, taşımaz, etiket değiştirmez).
+ *
+ * Kurulum: bu metnin tamamını yapıştır → kaydet → "kurulum" fonksiyonunu bir kez çalıştır.
+ * Geçmişi tamamlamak için: "gecmisiArsivle" fonksiyonunu çalıştır (bitene kadar tekrar çalıştır).
+ */
+
+const AYAR = {
+  ETIKET: 'muhasebe-arşiv',
+  GONDEREN_LISTESI_ID: '13aRMVtfvBn03NsOYtvQOFuLbGvtQUQGIbaFoNL9StyY',
+  FATURA_LISTESI_ID: '1xtZVYBzYug25gdGftn_B89OujbZyJ4CPBbh9VPTFZWM',
+  TUR_KLASORU: {
+    'Banka': '1r7KXw1yXnMxvGWAQWojoGS9ALH50Fx3T',
+    'Fatura': '1w88uJWXOnBjLAFaIB6vsjAMYxBvrZfA0',
+  },
+  // Gönderenin alan adı bunlardan biriyle bitiyorsa banka belgesidir (adres listede olmasa bile)
+  BANKA_ALANLARI: {
+    'halkbank.com.tr': 'Halkbank',
+    'isbank.com.tr': 'İş Bankası',
+    'ziraatbank.com.tr': 'Ziraat Bankası',
+    'vakifbank.com.tr': 'VakıfBank',
+    'garantibbva.com.tr': 'Garanti BBVA',
+    'qnb.com.tr': 'QNB',
+    'yapikredi.com.tr': 'Yapı Kredi',
+    'halkyatirim.com.tr': 'Halk Yatırım',
+    'akbank.com': 'Akbank',
+    'denizbank.com': 'DenizBank',
+    'teb.com.tr': 'TEB',
+    'kuveytturk.com.tr': 'Kuveyt Türk',
+    'enpara.com': 'Enpara',
+    'vakifkatilim.com.tr': 'Vakıf Katılım',
+    'ziraatkatilim.com.tr': 'Ziraat Katılım',
+  },
+  // Kurumun bilerek dışarıda bıraktığı gönderenler (ör. kişisel portföy raporları)
+  HARIC_ALANLAR: ['foneriaportfoy.com.tr'],
+  SAAT_DILIMI: 'Europe/Istanbul',
+  CALISMA_SAATI: 9,
+  // İlk çalışmada kaç gün geriye bakılsın (sonrasında her gün kaldığı yerden devam eder)
+  ILK_CALISMA_GUN: 7,
+  // gecmisiArsivle bu tarihten itibaren her şeyi tarar (yıl-ay-gün)
+  GECMIS_BASLANGIC: '2026-01-01',
+  // Bu boyuttan küçük resimler imza/logo sayılır ve atlanır (fatura fotoğrafları alınır)
+  MIN_RESIM_BOYUTU: 30 * 1024,
+  FATURA_KELIMELERI: /fatura|e-ar[sş]iv|earsiv|e-fatura|invoice|makbuz|receipt/i,
+  BANKA_KELIMELERI: /ekstre|dekont|hesap [öo]zet|hareket|icmal/i,
+  // Apps Script tek seferde 6 dk çalışabilir; 5 dk'da durup kaldığı yeri kaydeder
+  SURE_SINIRI_MS: 5 * 60 * 1000,
+};
+
+const AYLAR = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+
+/** Bir kez çalıştırılır: her sabah 09:00 zamanlayıcısını kurar. */
+function kurulum() {
+  ScriptApp.getProjectTriggers()
+    .filter(t => t.getHandlerFunction() === 'muhasebeArsivle')
+    .forEach(t => ScriptApp.deleteTrigger(t));
+  ScriptApp.newTrigger('muhasebeArsivle')
+    .timeBased().everyDays(1).atHour(AYAR.CALISMA_SAATI).inTimezone(AYAR.SAAT_DILIMI)
+    .create();
+  Logger.log('Zamanlayıcı kuruldu: her gün %s:00 (%s).', AYAR.CALISMA_SAATI, AYAR.SAAT_DILIMI);
+}
+
+/**
+ * Geçmişi tamamlar: GECMIS_BASLANGIC'tan bugüne her şeyi tarar. Daha önce arşivlenen belgeler
+ * tekrar yüklenmez. "Yarıda kaldı" yazarsa bir kez daha çalıştır; "Bitti" yazana kadar.
+ */
+function gecmisiArsivle() {
+  const ozellikler = PropertiesService.getScriptProperties();
+  if (!ozellikler.getProperty('GECMIS_DEVAM')) {
+    const [y, a, g] = AYAR.GECMIS_BASLANGIC.split('-').map(Number);
+    ozellikler.setProperty('SON_CALISMA', String(new Date(y, a - 1, g).getTime()));
+    ozellikler.setProperty('GECMIS_DEVAM', '1');
+  }
+  const bitti = muhasebeArsivle();
+  if (bitti) ozellikler.deleteProperty('GECMIS_DEVAM');
+}
+
+/** Asıl iş: yeni mailleri arşivler. Zamanlayıcı bunu her sabah çağırır. Bitirdiyse true döner. */
+function muhasebeArsivle() {
+  const ozellikler = PropertiesService.getScriptProperties();
+  const baslangic = Date.now();
+  const sonCalisma = Number(ozellikler.getProperty('SON_CALISMA')) ||
+    baslangic - AYAR.ILK_CALISMA_GUN * 24 * 60 * 60 * 1000;
+
+  const liste = gonderenListesiniOku_();
+  const kontrol = kontrolSayfasi_();
+  const sayac = { mail: 0, dosya: 0, fatura: 0, elle: 0, atlanan: 0 };
+
+  // En eskiden en yeniye işle; süre biterse kaldığı yer kaydedilir, yarın oradan devam eder
+  const mesajlar = adayMesajlar_(sonCalisma, liste);
+  let kaldigiYer = baslangic;
+  let bitti = true;
+  for (const mesaj of mesajlar) {
+    if (Date.now() - baslangic > AYAR.SURE_SINIRI_MS) {
+      kaldigiYer = mesaj.getDate().getTime() - 1000;
+      bitti = false;
+      break;
+    }
+    mesajiIsle_(mesaj, liste, kontrol, sayac);
+  }
+
+  ozellikler.setProperty('SON_CALISMA', String(kaldigiYer));
+  Logger.log('%s: %s mail, %s dosya arşivlendi, %s fatura listeye yazıldı, %s fatura ELLE İNDİRİLMELİ, %s mail atlandı.',
+    bitti ? 'Bitti' : 'Yarıda kaldı (süre doldu) — bir kez daha çalıştır',
+    sayac.mail, sayac.dosya, sayac.fatura, sayac.elle, sayac.atlanan);
+  return bitti;
+}
+
+/** Etikete güvenmeden geniş arama: banka alan adları, listedeki göndericiler, fatura kelimeleri. */
+function adayMesajlar_(sonCalisma, liste) {
+  const sonra = `after:${Math.floor(sonCalisma / 1000)}`;
+  const gondericiler = Object.keys(AYAR.BANKA_ALANLARI).concat(Object.keys(liste));
+  const sorgular = [
+    `label:${AYAR.ETIKET} ${sonra}`,
+    `from:(${gondericiler.join(' OR ')}) ${sonra}`,
+    `has:attachment {fatura e-arşiv earşiv e-fatura makbuz invoice receipt ekstre dekont} ${sonra}`,
+    // Eki olmayan fatura bildirimleri (link ile gelenler) → Kontrol sayfasına "ELLE İNDİR"
+    `subject:{fatura e-arşiv e-fatura makbuz invoice receipt} -has:attachment ${sonra}`,
+  ];
+  const goruldu = {};
+  const sonuc = [];
+  for (const sorgu of sorgular) {
+    for (let bas = 0; ; bas += 100) {
+      const diziler = GmailApp.search(sorgu, bas, 100);
+      if (diziler.length === 0) break;
+      for (const dizi of diziler) {
+        for (const mesaj of dizi.getMessages()) {
+          const id = mesaj.getId();
+          if (goruldu[id] || mesaj.getDate().getTime() <= sonCalisma || mesaj.isInTrash()) continue;
+          goruldu[id] = true;
+          sonuc.push(mesaj);
+        }
+      }
+    }
+  }
+  return sonuc.sort((a, b) => a.getDate() - b.getDate());
+}
+
+function mesajiIsle_(mesaj, liste, kontrol, sayac) {
+  const kimden = kimdenAyir_(mesaj.getFrom());
+  const konu = mesaj.getSubject() || '';
+  const alan = kimden.adres.split('@')[1] || '';
+  const tarih = mesaj.getDate();
+  const bicim = k => Utilities.formatDate(tarih, AYAR.SAAT_DILIMI, k);
+  const yaz = (sonuc, dosyalar) => kontrol.appendRow([
+    bicim('dd.MM.yyyy HH:mm'), kimden.adres, konu, sonuc, dosyalar || '',
+    `https://mail.google.com/mail/u/0/#all/${mesaj.getId()}`,
+  ]);
+
+  if (AYAR.HARIC_ALANLAR.some(h => alan.endsWith(h))) { sayac.atlanan++; return; }
+
+  const bankaAlani = Object.keys(AYAR.BANKA_ALANLARI).find(d => alan === d || alan.endsWith('.' + d));
+  const etiketli = mesaj.getThread().getLabels().some(l => l.getName().toLowerCase() === AYAR.ETIKET);
+  const metin = konu + ' ' + mesaj.getPlainBody().slice(0, 5000);
+
+  let kurum, tur;
+  if (liste[kimden.adres]) {
+    kurum = liste[kimden.adres].company;
+    tur = liste[kimden.adres].tur;
+  } else if (bankaAlani && AYAR.BANKA_KELIMELERI.test(metin)) {
+    kurum = AYAR.BANKA_ALANLARI[bankaAlani];
+    tur = 'Banka';
+  } else if (AYAR.FATURA_KELIMELERI.test(metin) || etiketli) {
+    kurum = kimden.ad || alan || 'Bilinmeyen';
+    tur = 'Fatura';
+  } else {
+    // Ekli ama tanınmayan banka maili ya da ekstre/dekont gibi görünen yabancı gönderen → insan baksın
+    const ekli = mesaj.getAttachments({ includeInlineImages: false }).length > 0;
+    if ((bankaAlani && ekli) || AYAR.BANKA_KELIMELERI.test(konu)) yaz('KONTROL ET: banka/ekstre olabilir, otomatik alınmadı');
+    sayac.atlanan++;
+    return;
+  }
+  const turKlasorId = AYAR.TUR_KLASORU[tur];
+  if (!turKlasorId) throw new Error(`Gönderen listesinde bilinmeyen tür: "${tur}" (${kimden.adres})`);
+  kurum = temizle_(kurum);
+
+  // Satır içi resimler (logo, imza) hiç alınmaz; küçük ekli resimler de atlanır
+  const belgeler = mesaj.getAttachments({ includeInlineImages: false })
+    .filter(e => !e.getContentType().startsWith('image/') || e.getSize() >= AYAR.MIN_RESIM_BOYUTU);
+  if (belgeler.length === 0) {
+    // Bankanın ek içermeyen bildirimleri (bakiye, kampanya) belge değildir; faturada ise eksik var demektir
+    if (tur === 'Fatura') { yaz('ELLE İNDİR: fatura eki yok (link ile gelmiş olabilir)'); sayac.elle++; }
+    else sayac.atlanan++;
+    return;
+  }
+
+  const klasorAy = `${bicim('yyyy-MM')} ${AYLAR[Number(bicim('M')) - 1]}`;
+  const turKlasoru = DriveApp.getFolderById(turKlasorId);
+  const ayKlasoru = tur === 'Fatura' ? altKlasor_(turKlasoru, klasorAy) : altKlasor_(altKlasor_(turKlasoru, kurum), klasorAy);
+
+  // Fatura listesine her mail için tek satır: varsa PDF, yoksa ilk belge
+  const anaBelge = belgeler.find(e => e.getContentType().includes('pdf')) || belgeler[0];
+  sayac.mail++;
+  const yuklenen = [];
+  for (const ek of belgeler) {
+    const dosyaAdi = benzersizAd_(ayKlasoru, `${bicim('yyyy-MM-dd')}_${kurum}_${ek.getName()}`, ek, mesaj.getId());
+    if (!dosyaAdi) continue; // bu belge daha önce arşivlenmiş
+    const dosya = ayKlasoru.createFile(ek.copyBlob().setName(dosyaAdi));
+    yuklenen.push(dosyaAdi);
+    sayac.dosya++;
+    if (tur === 'Fatura' && ek === anaBelge) {
+      SpreadsheetApp.openById(AYAR.FATURA_LISTESI_ID).getSheets()[0].appendRow([
+        klasorAy, bicim('dd.MM.yyyy'), kurum, konu, dosyaAdi, dosya.getUrl(), kimden.adres,
+      ]);
+      sayac.fatura++;
+    }
+  }
+  yaz(yuklenen.length ? `Arşivlendi (${tur})` : `Zaten arşivde (${tur})`, yuklenen.join(', '));
+}
+
+/**
+ * Aynı adda dosya varsa: boyutu da aynıysa aynı belgedir → null (yükleme).
+ * Boyutu farklıysa başka bir belgedir → adın sonuna mail kimliği eklenir.
+ */
+function benzersizAd_(klasor, ad, ek, mesajId) {
+  const ayniBelge = isim => {
+    const dosyalar = klasor.getFilesByName(isim);
+    while (dosyalar.hasNext()) if (dosyalar.next().getSize() === ek.getSize()) return true;
+    return false;
+  };
+  if (!klasor.getFilesByName(ad).hasNext()) return ad;
+  if (ayniBelge(ad)) return null;
+  const nokta = ad.lastIndexOf('.');
+  const yeni = nokta > 0 ? `${ad.slice(0, nokta)}_${mesajId.slice(-6)}${ad.slice(nokta)}` : `${ad}_${mesajId.slice(-6)}`;
+  return klasor.getFilesByName(yeni).hasNext() ? null : yeni;
+}
+
+/** Fatura Listesi dosyasındaki "Kontrol" sayfası: her aday mailin ne olduğu buraya yazılır. */
+function kontrolSayfasi_() {
+  const tablo = SpreadsheetApp.openById(AYAR.FATURA_LISTESI_ID);
+  let sayfa = tablo.getSheetByName('Kontrol');
+  if (!sayfa) {
+    sayfa = tablo.insertSheet('Kontrol');
+    sayfa.appendRow(['Mail Tarihi', 'Gönderen', 'Konu', 'Sonuç', 'Dosyalar', 'Mail Linki']);
+    sayfa.setFrozenRows(1);
+  }
+  return sayfa;
+}
+
+function gonderenListesiniOku_() {
+  const satirlar = SpreadsheetApp.openById(AYAR.GONDEREN_LISTESI_ID).getSheets()[0].getDataRange().getValues();
+  const basliklar = satirlar.shift().map(b => String(b).trim().toLowerCase());
+  const [iEmail, iKurum, iTur] = ['email', 'company', 'tur'].map(b => basliklar.indexOf(b));
+  const liste = {};
+  for (const s of satirlar) {
+    const email = String(s[iEmail] || '').trim().toLowerCase();
+    if (email) liste[email] = { company: String(s[iKurum]).trim(), tur: String(s[iTur]).trim() };
+  }
+  return liste;
+}
+
+function kimdenAyir_(kimden) {
+  const m = String(kimden).match(/^\s*"?([^"<]*?)"?\s*<([^>]+)>\s*$/);
+  return m ? { ad: m[1].trim(), adres: m[2].trim().toLowerCase() }
+           : { ad: '', adres: String(kimden).trim().toLowerCase() };
+}
+
+function altKlasor_(ust, ad) {
+  const bulunan = ust.getFoldersByName(ad);
+  return bulunan.hasNext() ? bulunan.next() : ust.createFolder(ad);
+}
+
+function temizle_(s) {
+  return String(s || '').replace(/[\\/:*?"<>|']/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60);
+}
