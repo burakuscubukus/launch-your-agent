@@ -1,5 +1,5 @@
 /**
- * Muhasebe Arşivi — Gmail'den Google Drive'a (Google Apps Script) · sürüm 2
+ * Muhasebe Arşivi — Gmail'den Google Drive'a (Google Apps Script) · sürüm 2.2
  *
  * Her sabah 09:00'da Gmail'i tarar; banka ekstre/dekontlarını ve faturaları Drive'a koyar.
  *  - Bankalar: gönderen alan adına bakılır (halkbank.com.tr, isbank.com.tr …) — bankanın hangi
@@ -45,6 +45,8 @@ const AYAR = {
   },
   // Kurumun bilerek dışarıda bıraktığı gönderenler (ör. kişisel portföy raporları)
   HARIC_ALANLAR: ['foneriaportfoy.com.tr'],
+  // Konusunda "fatura" geçse de belge olmayan bildirimler (otomatik ödeme talimatı, kampanya) → ELLE İNDİR'e yazılmaz
+  BILDIRIM_ADRESLERI: ['bildirim@vakifbank.com.tr', 'kampanya@ileti.isbank.com.tr'],
   SAAT_DILIMI: 'Europe/Istanbul',
   CALISMA_SAATI: 9,
   // İlk çalışmada kaç gün geriye bakılsın (sonrasında her gün kaldığı yerden devam eder)
@@ -97,6 +99,17 @@ function gecmisiArsivle() {
     ScriptApp.newTrigger('gecmisiArsivle').timeBased().after(60 * 1000).create();
     Logger.log('Devam ediyor: 1 dk sonra kendiliğinden sürecek, bir şey yapmana gerek yok.');
   }
+}
+
+/**
+ * Geçmişi baştan tarar ve Kontrol sekmesini sıfırdan yazar (sürüm 2.2 düzeltmeleri geçmişe de uygulansın diye).
+ * Arşivdeki dosyalar tekrar yüklenmez; sadece önceden kaçanlar eklenir. Bir kez çalıştırman yeter.
+ */
+function gecmisiYenidenTara() {
+  const sayfa = kontrolSayfasi_();
+  if (sayfa.getLastRow() > 1) sayfa.deleteRows(2, sayfa.getLastRow() - 1);
+  PropertiesService.getScriptProperties().deleteProperty('GECMIS_DEVAM');
+  gecmisiArsivle();
 }
 
 /**
@@ -196,7 +209,7 @@ function mesajiIsle_(mesaj, liste, kontrol, sayac) {
     tur = 'Fatura';
   } else {
     // Ekli ama tanınmayan banka maili ya da ekstre/dekont gibi görünen yabancı gönderen → insan baksın
-    const ekli = mesaj.getAttachments({ includeInlineImages: false }).length > 0;
+    const ekli = belgeleriAl_(mesaj).length > 0;
     if ((bankaAlani && ekli) || AYAR.BANKA_KELIMELERI.test(konu)) yaz('KONTROL ET: banka/ekstre olabilir, otomatik alınmadı');
     sayac.atlanan++;
     return;
@@ -206,12 +219,13 @@ function mesajiIsle_(mesaj, liste, kontrol, sayac) {
   kurum = temizle_(kurum);
 
   // Satır içi resimler (logo, imza) hiç alınmaz; küçük ekli resimler de atlanır
-  const belgeler = mesaj.getAttachments({ includeInlineImages: false })
-    .filter(e => !e.getContentType().startsWith('image/') || e.getSize() >= AYAR.MIN_RESIM_BOYUTU);
+  const belgeler = belgeleriAl_(mesaj);
   if (belgeler.length === 0) {
-    // Bankanın ek içermeyen bildirimleri (bakiye, kampanya) belge değildir; faturada ise eksik var demektir
-    if (tur === 'Fatura') { yaz('ELLE İNDİR: fatura eki yok (link ile gelmiş olabilir)'); sayac.elle++; }
-    else sayac.atlanan++;
+    // Ek yoksa: konusu fatura diyorsa linkle gelmiştir → ELLE İNDİR. Bildirim/kampanya/rezervasyon mesajları atlanır.
+    const bildirim = AYAR.BILDIRIM_ADRESLERI.includes(kimden.adres) || kimden.adres.startsWith('kampanya@');
+    if (tur === 'Fatura' && !bildirim && AYAR.FATURA_KELIMELERI.test(konu)) {
+      yaz('ELLE İNDİR: fatura eki yok (link ile gelmiş olabilir)'); sayac.elle++;
+    } else sayac.atlanan++;
     return;
   }
 
@@ -239,6 +253,42 @@ function mesajiIsle_(mesaj, liste, kontrol, sayac) {
     }
   }
   yaz(yuklenen.length ? `Arşivlendi (${tur})` : `Zaten arşivde (${tur})`, yuklenen.join(', '));
+}
+
+/**
+ * Maildeki belgeler (PDF, büyük resim vb.). Küçük resimler imza/logo sayılır.
+ * iPhone'dan gönderilen PDF'ler "satır içi" geldiği için GmailApp onları ek olarak göstermez;
+ * o durumda mailin ham içeriğinden PDF/resim parçaları çıkarılır.
+ */
+function belgeleriAl_(mesaj) {
+  const uygun = e => !/^image\//i.test(e.getContentType()) || e.getSize() >= AYAR.MIN_RESIM_BOYUTU;
+  const ekler = mesaj.getAttachments({ includeInlineImages: false }).filter(uygun);
+  return ekler.length ? ekler : hamEkler_(mesaj).filter(uygun);
+}
+
+function hamEkler_(mesaj) {
+  const ham = mesaj.getRawContent();
+  const sinirlar = [...ham.matchAll(/boundary="?([^";\r\n]+)"?/gi)].map(m => m[1]);
+  const goruldu = {};
+  const ekler = [];
+  for (const sinir of sinirlar) {
+    for (const parca of ham.split('--' + sinir)) {
+      const ayrim = parca.search(/\r?\n\r?\n/);
+      if (ayrim < 0) continue;
+      const baslik = parca.slice(0, ayrim);
+      const tur = ((baslik.match(/Content-Type:\s*([^;\s]+)/i) || [])[1] || '').toLowerCase();
+      if (!/^(application\/pdf|image\/)/.test(tur) || !/Content-Transfer-Encoding:\s*base64/i.test(baslik)) continue;
+      const bayt = Utilities.base64Decode(parca.slice(ayrim).replace(/--\s*$/, '').replace(/\s/g, ''));
+      let ad = (baslik.match(/name="?([^";\r\n]+)"?/i) || [])[1] || '';
+      if (!ad || ad.startsWith('=?')) ad = 'belge.' + (tur.split('/')[1] || 'bin');
+      const anahtar = ad + bayt.length;
+      if (goruldu[anahtar]) continue;
+      goruldu[anahtar] = true;
+      const blob = Utilities.newBlob(bayt, tur, ad);
+      ekler.push({ getName: () => ad, getSize: () => bayt.length, getContentType: () => tur, copyBlob: () => blob });
+    }
+  }
+  return ekler;
 }
 
 /**
