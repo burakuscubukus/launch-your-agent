@@ -1,5 +1,5 @@
 /**
- * Muhasebe Arşivi — Gmail'den Google Drive'a (Google Apps Script) · sürüm 2.3
+ * Muhasebe Arşivi — Gmail'den Google Drive'a (Google Apps Script) · sürüm 2.4
  *
  * Her sabah 09:00'da Gmail'i tarar; banka ekstre/dekontlarını ve faturaları Drive'a koyar.
  *  - Bankalar: gönderen alan adına bakılır (halkbank.com.tr, isbank.com.tr …) — bankanın hangi
@@ -14,7 +14,7 @@
  * Dışarıya hiçbir mesaj göndermez, maillere dokunmaz (silmez, taşımaz, etiket değiştirmez).
  *
  * Kurulum: bu metnin tamamını yapıştır → kaydet → "kurulum" fonksiyonunu bir kez çalıştır.
- * Geçmişi tamamlamak için: "gecmisiArsivle" fonksiyonunu çalıştır (bitene kadar tekrar çalıştır).
+ * Geçmişi tamamlamak için: "gecmisiArsivle" fonksiyonunu çalıştır (bir kez; gerisini kendisi yapar).
  */
 
 const AYAR = {
@@ -77,35 +77,56 @@ function kurulum() {
 }
 
 /**
- * Geçmişi tamamlar: GECMIS_BASLANGIC'tan bugüne her şeyi tarar. Daha önce arşivlenen belgeler
- * tekrar yüklenmez. Bir kez çalıştırman yeter: süre dolarsa 1 dk sonra kendini yeniden başlatır,
- * bugüne gelince durur. İlerlemeyi Kontrol sekmesinden izleyebilirsin.
+ * Geçmişi tamamlar: GECMIS_BASLANGIC'tan (ya da kaldığı yerden) bugüne her şeyi tarar. Daha önce
+ * arşivlenen belgeler tekrar yüklenmez. Bir kez çalıştırman yeter: 5 dakikada bir kendiliğinden bir tur
+ * daha atar, bugüne gelince kendini kapatır. İlerlemeyi Kontrol sekmesinden izleyebilirsin.
  */
 function gecmisiArsivle() {
-  ScriptApp.getProjectTriggers()
-    .filter(t => t.getHandlerFunction() === 'gecmisiArsivle')
-    .forEach(t => ScriptApp.deleteTrigger(t));
   const ozellikler = PropertiesService.getScriptProperties();
   if (!ozellikler.getProperty('GECMIS_DEVAM')) {
     const [y, a, g] = AYAR.GECMIS_BASLANGIC.split('-').map(Number);
     ozellikler.setProperty('SON_CALISMA', String(new Date(y, a - 1, g).getTime()));
     ozellikler.setProperty('GECMIS_DEVAM', '1');
   }
-  // Emniyet: bu tur beklenmedik şekilde yarıda kesilirse 7 dk sonra kaldığı yerden yeniden başlar
-  const emniyet = ScriptApp.newTrigger('gecmisiArsivle').timeBased().after(7 * 60 * 1000).create();
-  const bitti = muhasebeArsivle(AYAR.GECMIS_PENCERE_GUN);
-  ScriptApp.deleteTrigger(emniyet);
-  if (bitti) {
-    ozellikler.deleteProperty('GECMIS_DEVAM');
-    Logger.log('Geçmiş tamamlandı: bugüne kadar her şey tarandı.');
-  } else {
-    ScriptApp.newTrigger('gecmisiArsivle').timeBased().after(60 * 1000).create();
-    Logger.log('Devam ediyor: 1 dk sonra kendiliğinden sürecek, bir şey yapmana gerek yok.');
+  // Tek-seferlik zamanlayıcıları kurup silmek Google'da zaman zaman hata veriyor; bunun yerine
+  // 5 dakikada bir çalışan tek bir zamanlayıcı kurulur. İş bitince her tur hiçbir şey yapmadan döner.
+  const kurulu = ScriptApp.getProjectTriggers().some(t => t.getHandlerFunction() === 'gecmisTuru');
+  if (!kurulu) ScriptApp.newTrigger('gecmisTuru').timeBased().everyMinutes(5).create();
+  gecmisTuru();
+}
+
+/** Geçmiş taramasının bir turu (yaklaşık 1 aylık dilim). 5 dakikada bir zamanlayıcı çağırır. */
+function gecmisTuru() {
+  const kilit = LockService.getScriptLock();
+  if (!kilit.tryLock(1000)) return; // önceki tur hâlâ çalışıyor
+  try {
+    const ozellikler = PropertiesService.getScriptProperties();
+    if (!ozellikler.getProperty('GECMIS_DEVAM')) { gecmisZamanlayicisiniKapat_(); return; }
+    const bitti = muhasebeArsivle(AYAR.GECMIS_PENCERE_GUN);
+    if (bitti) {
+      ozellikler.deleteProperty('GECMIS_DEVAM');
+      gecmisZamanlayicisiniKapat_();
+      Logger.log('Geçmiş tamamlandı: bugüne kadar her şey tarandı.');
+    } else {
+      Logger.log('Devam ediyor: 5 dk içinde kendiliğinden sürecek, bir şey yapmana gerek yok.');
+    }
+  } finally {
+    kilit.releaseLock();
+  }
+}
+
+function gecmisZamanlayicisiniKapat_() {
+  try {
+    ScriptApp.getProjectTriggers()
+      .filter(t => ['gecmisTuru', 'gecmisiArsivle'].includes(t.getHandlerFunction()))
+      .forEach(t => ScriptApp.deleteTrigger(t));
+  } catch (hata) {
+    // Silinemezse zararı yok: tarama bittiği için tur hiçbir şey yapmadan döner
   }
 }
 
 /**
- * Geçmişi baştan tarar ve Kontrol sekmesini sıfırdan yazar (sürüm 2.2 düzeltmeleri geçmişe de uygulansın diye).
+ * Geçmişi baştan tarar ve Kontrol sekmesini sıfırdan yazar.
  * Arşivdeki dosyalar tekrar yüklenmez; sadece önceden kaçanlar eklenir. Bir kez çalıştırman yeter.
  */
 function gecmisiYenidenTara() {
@@ -121,6 +142,8 @@ function gecmisiYenidenTara() {
  */
 function muhasebeArsivle(pencereGun) {
   const ozellikler = PropertiesService.getScriptProperties();
+  // Geçmiş taraması sürüyorsa günlük çalışma beklesin; tarama bugüne kadar her şeyi zaten alacak
+  if (typeof pencereGun !== 'number' && ozellikler.getProperty('GECMIS_DEVAM')) return true;
   const baslangic = Date.now();
   const sonCalisma = Number(ozellikler.getProperty('SON_CALISMA')) ||
     baslangic - AYAR.ILK_CALISMA_GUN * 24 * 60 * 60 * 1000;
