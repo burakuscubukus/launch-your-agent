@@ -1,5 +1,5 @@
 /**
- * Muhasebe Arşivi — Gmail'den Google Drive'a (Google Apps Script) · sürüm 2.2
+ * Muhasebe Arşivi — Gmail'den Google Drive'a (Google Apps Script) · sürüm 2.3
  *
  * Her sabah 09:00'da Gmail'i tarar; banka ekstre/dekontlarını ve faturaları Drive'a koyar.
  *  - Bankalar: gönderen alan adına bakılır (halkbank.com.tr, isbank.com.tr …) — bankanın hangi
@@ -91,7 +91,10 @@ function gecmisiArsivle() {
     ozellikler.setProperty('SON_CALISMA', String(new Date(y, a - 1, g).getTime()));
     ozellikler.setProperty('GECMIS_DEVAM', '1');
   }
+  // Emniyet: bu tur beklenmedik şekilde yarıda kesilirse 7 dk sonra kaldığı yerden yeniden başlar
+  const emniyet = ScriptApp.newTrigger('gecmisiArsivle').timeBased().after(7 * 60 * 1000).create();
   const bitti = muhasebeArsivle(AYAR.GECMIS_PENCERE_GUN);
+  ScriptApp.deleteTrigger(emniyet);
   if (bitti) {
     ozellikler.deleteProperty('GECMIS_DEVAM');
     Logger.log('Geçmiş tamamlandı: bugüne kadar her şey tarandı.');
@@ -127,7 +130,7 @@ function muhasebeArsivle(pencereGun) {
 
   const liste = gonderenListesiniOku_();
   const kontrol = kontrolSayfasi_();
-  const sayac = { mail: 0, dosya: 0, fatura: 0, elle: 0, atlanan: 0 };
+  const sayac = { mail: 0, dosya: 0, fatura: 0, elle: 0, atlanan: 0, hata: 0 };
 
   // En eskiden en yeniye işle; süre biterse kaldığı yer kaydedilir, yarın oradan devam eder
   const mesajlar = adayMesajlar_(sonCalisma, dilimSonu, liste);
@@ -139,13 +142,21 @@ function muhasebeArsivle(pencereGun) {
       bitti = false;
       break;
     }
-    mesajiIsle_(mesaj, liste, kontrol, sayac);
+    try {
+      mesajiIsle_(mesaj, liste, kontrol, sayac);
+    } catch (hata) {
+      // Tek bir sorunlu mail bütün çalışmayı durdurmasın: Kontrol'e yaz, devam et
+      sayac.hata++;
+      kontrol.appendRow([Utilities.formatDate(mesaj.getDate(), AYAR.SAAT_DILIMI, 'dd.MM.yyyy HH:mm'),
+        mesaj.getFrom(), mesaj.getSubject(), 'HATA (elle bak): ' + hata.message, '',
+        `https://mail.google.com/mail/u/0/#all/${mesaj.getId()}`]);
+    }
   }
 
   ozellikler.setProperty('SON_CALISMA', String(kaldigiYer));
-  Logger.log('%s: %s mail, %s dosya arşivlendi, %s fatura listeye yazıldı, %s fatura ELLE İNDİRİLMELİ, %s mail atlandı.',
+  Logger.log('%s: %s mail, %s dosya arşivlendi, %s fatura listeye yazıldı, %s fatura ELLE İNDİRİLMELİ, %s mail atlandı, %s hata.',
     bitti ? 'Bitti' : `${Utilities.formatDate(new Date(kaldigiYer), AYAR.SAAT_DILIMI, 'dd.MM.yyyy')} tarihine kadar tamam, devam edecek`,
-    sayac.mail, sayac.dosya, sayac.fatura, sayac.elle, sayac.atlanan);
+    sayac.mail, sayac.dosya, sayac.fatura, sayac.elle, sayac.atlanan, sayac.hata);
   return bitti;
 }
 
@@ -267,7 +278,14 @@ function belgeleriAl_(mesaj) {
 }
 
 function hamEkler_(mesaj) {
-  const ham = mesaj.getRawContent();
+  try {
+    return hamEklerOku_(mesaj.getRawContent());
+  } catch (hata) {
+    return []; // ham içerik okunamazsa ek yok say; Kontrol'de ELLE İNDİR olarak görünür
+  }
+}
+
+function hamEklerOku_(ham) {
   const sinirlar = [...ham.matchAll(/boundary="?([^";\r\n]+)"?/gi)].map(m => m[1]);
   const goruldu = {};
   const ekler = [];
@@ -278,7 +296,12 @@ function hamEkler_(mesaj) {
       const baslik = parca.slice(0, ayrim);
       const tur = ((baslik.match(/Content-Type:\s*([^;\s]+)/i) || [])[1] || '').toLowerCase();
       if (!/^(application\/pdf|image\/)/.test(tur) || !/Content-Transfer-Encoding:\s*base64/i.test(baslik)) continue;
-      const bayt = Utilities.base64Decode(parca.slice(ayrim).replace(/--\s*$/, '').replace(/\s/g, ''));
+      let bayt;
+      try {
+        bayt = Utilities.base64Decode(parca.slice(ayrim).replace(/--\s*$/, '').replace(/\s/g, ''));
+      } catch (hata) {
+        continue; // bozuk/çözülemeyen parça
+      }
       let ad = (baslik.match(/name="?([^";\r\n]+)"?/i) || [])[1] || '';
       if (!ad || ad.startsWith('=?')) ad = 'belge.' + (tur.split('/')[1] || 'bin');
       const anahtar = ad + bayt.length;
